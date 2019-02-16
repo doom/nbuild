@@ -4,32 +4,33 @@
 import os
 import tarfile
 import shutil
-from glob import glob
-from nbuild.log import ilog, clog
-from nbuild.stdenv.build import current_build
+import stdlib
+import glob
+from core.log import ilog, clog
 
 
 def extract_tarballs(
-    files=None,
+    *files,
     move_subdir=True,
     subdir=None,
 ):
-    package = current_build().current_package
+    build = stdlib.current_build()
 
-    if files is None:
-        files = glob(f'{package.download_dir}/*.tar*')
+    if len(files) == 0:
+        files = glob.glob(f'{build.download_cache}/*.tar*')
 
     for tarball_path in files:
         ilog(f"Extracting {os.path.basename(tarball_path)}")
         with tarfile.open(tarball_path) as tar:
-            tar.extractall(path=package.build_dir)
+            tar.extractall(path=build.build_cache)
 
+        # If sources are contained in a sub directory,
+        # move the content one folder up
         if move_subdir:
+            # Guess the name of the subdir
             if subdir is None:
-                # If sources are contained in a sub directory,
-                # move the content one folder up
                 subdir = os.path.join(
-                    package.build_dir,
+                    build.build_cache,
                     os.path.basename(tarball_path).split('.tar')[0],
                 )
 
@@ -37,7 +38,7 @@ def extract_tarballs(
                 for filename in os.listdir(subdir):
                     shutil.move(
                         os.path.join(subdir, filename),
-                        package.build_dir,
+                        build.build_cache,
                     )
 
-        clog(f"Extracted in {package.build_dir}")
+        clog(f"Extracted in {build.build_cache}")

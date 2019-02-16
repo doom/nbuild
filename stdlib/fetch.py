@@ -1,30 +1,48 @@
+#!/usr/bin/env python3.6
+# -*- coding: utf-8 -*-
+
 import os
+import core
+import ntpath
+import shutil
 import hashlib
 import requests
-from urllib.parse import urlparse
 import ftplib
-from nbuild.log import wlog, ilog, clog, flog
-from nbuild.stdenv.build import current_build
+import stdlib
+from urllib.parse import urlparse
+from core.log import wlog, ilog, clog, flog
 
 
-def fetch_urls(
+def fetch_data():
+    build = stdlib.current_build()
+
+    datas = build.version_data.get('fetch_urls', None)
+    if datas is not None:
+        urls(datas)
+
+    data = build.version_data.get('fetch_url', None)
+    if data is not None:
+        url(**data)
+
+
+def urls(
     downloads,
 ):
     for download in downloads:
-        fetch_url(**download)
+        url(**download)
 
 
-def fetch_url(
-    url,
+def url(
+    url: str,
     md5=None,
     sha1=None,
     sha256=None,
 ):
-    package = current_build().current_package
+    build = stdlib.current_build()
 
     url_object = urlparse(url)
     path = os.path.join(
-        package.download_dir,
+        build.download_cache,
         os.path.basename(url_object.path)
     )
 
@@ -34,9 +52,9 @@ def fetch_url(
     if not _check_file(path, md5, sha1, sha256):
         ilog(f"Fetching {url}")
         if url_object.scheme == 'http' or url_object.scheme == 'https':
-            download_http(url, path)
+            _download_http(url, path)
         elif url_object.scheme == ('ftp'):
-            download_ftp(url_object, path)
+            _download_ftp(url_object, path)
         else:
             flog(f"Unknown protocol to download file from url {url}")
             exit(1)
@@ -52,14 +70,14 @@ def fetch_url(
         clog(f"Using cache at {path}")
 
 
-def download_http(url, path):
+def _download_http(url, path):
         req = requests.get(url, stream=True)
         with open(path, 'wb') as file:
             for chunk in req.iter_content(chunk_size=4096):
                 file.write(chunk)
 
 
-def download_ftp(url_object, path):
+def _download_ftp(url_object, path):
     ftp = ftplib.FTP(url_object.netloc)
     ftp.login()
     with open(path, 'wb') as out_file:
@@ -106,3 +124,27 @@ def _check_sha256(path, sha256):
         for chunk in iter(lambda: file.read(4096), b''):
             hash_sha256.update(chunk)
     return hash_sha256.hexdigest() == sha256
+
+
+def add_file(*paths):
+    build = stdlib.current_build()
+
+    for path in paths:
+        if os.path.isabs(path):
+            raise RuntimeError("add_file() received an absolute path as parameter, while it expects a relative one")
+        filename = ntpath.basename(path)
+        dirname = ntpath.dirname(path)
+        dstdir = os.path.join(
+            build.build_cache,
+            dirname,
+        )
+        dstpath = os.path.join(
+            dstdir,
+            filename,
+        )
+        srcpath = os.path.join(
+            os.path.dirname(build.manifest.path),
+            path,
+        )
+        os.makedirs(dstdir, exist_ok=True)
+        shutil.copyfile(srcpath, dstpath)
