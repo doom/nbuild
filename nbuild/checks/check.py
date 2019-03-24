@@ -1,6 +1,6 @@
 import os
+import nbuild.checks.executable as ExeCheck
 from nbuild.checks.dependencies import check_deps
-from nbuild.checks.executable import check_exec
 from nbuild.log import ilog
 from nbuild.checks.syntax_check import check_syntax
 from nbuild.checks.suffix_check import suffix_checks
@@ -18,9 +18,10 @@ def check_package(pkg):
     suffix = pkg.name.split('-')[-1] if '-' in pkg.name else None
     ilog(f"Checking package installed at {pkg.install_dir}", indent=False)
 
-    check_syntax(pkg)
-    if suffix is None or suffix == 'bin':
-        check_deps(pkg)
-        check_exec(pkg)
-    suffix_checks(pkg)
-    ilog("All checks done")
+    # check_syntax(pkg)
+    # if suffix is None or suffix == 'bin':
+    #     check_deps(pkg)
+    #     check_exec(pkg)
+    # suffix_checks(pkg)
+    # ilog("All checks done")
+    ExeCheck.ExecCheck(pkg).run()

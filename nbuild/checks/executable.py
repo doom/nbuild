@@ -1,63 +1,55 @@
 import os
-from nbuild.log import wlog, elog, ilog, clog
+import stat
+from nbuild.log import elog, ilog
+import nbuild.checks.base as base
 import nbuild.checks.check as check
 
 
-def is_file_x(filename, pkg, x_expected=True):
-    path_wo_prefix = filename[len(pkg.install_dir):]
-    ret = os.access(filename, os.X_OK)
-    if x_expected and not ret:
+def get_shlib_files(pkg):
+    dirs = check.find_dirs_ending_in('lib', pkg.install_dir)
+    files = []
+    for dirent in dirs:
+        files += [os.path.join(dirent, x) for x in os.listdir(dirent)
+                  if '.so' in x]
+    return files
+
+
+def get_bin_files(pkg):
+    dirs = check.find_dirs_ending_in('bin', pkg.install_dir)
+    files = []
+    for dirent in dirs:
+        files += [os.path.join(dirent, x) for x in os.listdir(dirent)]
+    return files
+
+
+class FilesExecCheck(base.Check):
+    def __init__(self, pkg, files, local_state=None):
+        super().__init__(files, local_state=local_state)
+        self.pkg = pkg
+
+    def validate(self, item):
+        return os.access(item, os.X_OK)
+
+    def show(self, item):
+        path_wo_prefix = self._remove_prefix(item)
         elog(f"'{path_wo_prefix}' is not executable, but should be")
-    elif not x_expected and ret:
-        wlog(f"'{path_wo_prefix}' is executable, but should not be")
-    return ret
+
+    def fix(self, item):
+        perms = os.stat(item).st_mode
+        path_wo_prefix = self._remove_prefix(item)
+        ilog(f"'{path_wo_prefix}' has been given execute permissions")
+        os.chmod(item, perms | stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR)
+
+    def _remove_prefix(self, item):
+        return item[len(self.pkg.install_dir):]
 
 
-def are_files_x(files, pkg):
-    return all(map(lambda x: is_file_x(x, pkg), files))
+class ExecCheck():
+    def __init__(self, pkg):
+        self.pkg = pkg
 
+    def run(self):
+        ilog(f"Checking files execute permission")
+        FilesExecCheck(self.pkg, get_bin_files(self.pkg), local_state=base.Type.FIX).run()
+        FilesExecCheck(self.pkg, get_shlib_files(self.pkg), local_state=base.Type.FIX).run()
 
-def is_all_folder_x(dirpath, pkg):
-    path_wo_prefix = dirpath[len(pkg.install_dir):]
-    if os.path.exists(dirpath):
-        ilog(f"Checking if all files in folder '{path_wo_prefix}' are executable")
-        files = os.listdir(dirpath)
-        files_path = map(lambda x: os.path.join(dirpath, x), files)
-        return are_files_x(files_path, pkg)
-    return True
-
-
-def are_folders_x(pkg, dirpaths):
-    return all(map(lambda x: is_all_folder_x(x, pkg), dirpaths))
-
-
-def check_bins_x(pkg):
-    bindirs = check.find_dirs_ending_in('bin', pkg.install_dir)
-    return are_folders_x(pkg, bindirs)
-
-
-def are_shared_libs_x(dirpath, pkg):
-    path_wo_prefix = dirpath[len(pkg.install_dir):]
-    if os.path.exists(dirpath):
-        ilog(f"Checking if all shared libraries in folder '{path_wo_prefix}' are executable")
-        files = [x for x in os.listdir(dirpath) if '.so' in x]
-        files_path = map(lambda x: os.path.join(dirpath, x), files)
-        return all(map(lambda x: is_file_x(x, pkg), files_path))
-    return True
-
-
-def check_libs_x(pkg):
-    bindirs = check.find_dirs_ending_in('lib', pkg.install_dir)
-    return all(map(lambda x: are_shared_libs_x(x, pkg), bindirs))
-
-
-def check_exec(pkg):
-    ret = all([
-        check_bins_x(pkg),
-        check_libs_x(pkg),
-    ])
-    if ret:
-        clog("\tExecutable checks OK")
-    else:
-        elog("\tSome executable checks failed")
-    return ret
