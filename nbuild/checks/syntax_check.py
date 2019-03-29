@@ -20,15 +20,12 @@ class IdCheck(base.CheckOnManifest):
 
 class DescriptionCheck(base.CheckOnManifest):
     def __init__(self, pkg, local_state=None):
-        print(local_state)
         super().__init__(pkg, local_state=local_state)
 
     def validate(self, item):
-        a = len(item.description) >= 2 \
+        return len(item.description) >= 2 \
                 and item.description[0].isupper() \
                 and item.description[-1] == '.'
-        print(a)
-        return a
 
     def show(self, item):
         elog(
