@@ -139,6 +139,12 @@ class Package():
                 archive.add('./')
 
         ilog("Creating manifest.toml", indent=False)
+        self.create_manifest()
+
+        ilog(f"Finished building {self.id}.")
+        ilog(f"Output placed in {self.package_dir}")
+
+    def create_manifest(self):
         toml_path = os.path.join(self.package_dir, 'manifest.toml')
         with open(toml_path, 'w') as filename:
             manifest = {
@@ -152,9 +158,6 @@ class Package():
                 'dependencies': self.run_dependencies,
             }
             toml.dump(manifest, filename)
-
-        ilog(f"Finished building {self.id}.")
-        ilog(f"Output placed in {self.package_dir}")
 
 
 def package(id: str, description: str, build_dependencies={}, run_dependencies={}):

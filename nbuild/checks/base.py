@@ -1,4 +1,5 @@
 import enum
+from nbuild.log import ilog
 
 
 class Type(enum.Enum):
@@ -44,3 +45,13 @@ class Check():
 
     def edit(self, item):
         raise NotImplementedError
+
+
+class CheckOnManifest(Check):
+    def __init__(self, pkg, local_state=None):
+        super().__init__([pkg], local_state=local_state)
+
+    @staticmethod
+    def commit(pkg):
+        ilog("Recreating manifest.toml")
+        pkg.create_manifest()
