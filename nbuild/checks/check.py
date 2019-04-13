@@ -4,6 +4,7 @@ from nbuild.checks.dependencies import check_deps
 from nbuild.log import ilog
 from nbuild.checks.syntax_check import check_syntax
 from nbuild.checks.suffix_check import suffix_checks
+import nbuild.checks.base as base
 
 
 def find_dirs_ending_in(end, path):
@@ -25,3 +26,4 @@ def check_package(pkg):
     # suffix_checks(pkg)
     # ilog("All checks done")
     ExeCheck.ExecCheck(pkg).run()
+    base.Check.commit(pkg)

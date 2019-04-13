@@ -1,4 +1,5 @@
 import enum
+from nbuild.log import ilog
 
 
 class Type(enum.Enum):
@@ -10,6 +11,11 @@ class Type(enum.Enum):
 
 class Check():
     global_state = Type.SHOW
+
+    @staticmethod
+    def commit(pkg):
+        ilog("Recreating tarball")
+        pkg.create_tarball()
 
     def __init__(self, items, local_state=None):
         self.items = items

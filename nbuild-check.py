@@ -28,6 +28,13 @@ def parse_args():
         default='cache/',
         help="Cache directory used when downloading and building packages",
     )
+    parser.add_argument(
+        '-v',
+        '--verbose',
+        action='count',
+        default=0,
+        help="Make the operation more talkative",
+    )
     return parser.parse_args()
 
 
