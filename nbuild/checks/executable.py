@@ -23,7 +23,7 @@ def get_bin_files(pkg):
 
 
 class FilesExecCheck(base.Check):
-    def __init__(self, pkg, files, local_state=None):
+    def __init__(self, pkg, files, local_state=base.Check.global_state):
         super().__init__(files, local_state=local_state)
         self.pkg = pkg
 

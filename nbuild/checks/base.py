@@ -17,7 +17,7 @@ class Check():
         ilog("Recreating tarball")
         pkg.create_tarball()
 
-    def __init__(self, items, local_state=None):
+    def __init__(self, items, local_state=global_state):
         self.items = items
         self.state = local_state
         self.fails = []
@@ -26,14 +26,13 @@ class Check():
         for item in self.items:
             if not self.validate(item):
                 self.fails.append(item)
-                s = self.state or Check.global_state
-                if s is Type.SHOW:
+                if self.state is Type.SHOW:
                     self.show(item)
-                elif s is Type.FIX:
+                elif self.state is Type.FIX:
                     self.fix(item)
-                elif s is Type.DIFF:
+                elif self.state is Type.DIFF:
                     self.diff(item)
-                elif s is Type.EDIT:
+                elif self.state is Type.EDIT:
                     self.edit(item)
 
     def validate(self, item):
