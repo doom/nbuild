@@ -66,8 +66,6 @@ def main():
     else:
         base.Check.global_state = base.Type.FIX
 
-    print(base.Check.global_state)
-
     for manifest_path in args.manifests:
         spec = load_manifest(manifest_path)
         set_current_build(Build())
