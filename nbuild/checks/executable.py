@@ -40,6 +40,9 @@ class FilesExecCheck(base.Check):
         ilog(f"'{path_wo_prefix}' has been given execute permissions")
         os.chmod(item, perms | stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR)
 
+    def diff(self, item):
+        ilog("X permissions would be added")
+
     def _remove_prefix(self, item):
         return item[len(self.pkg.install_dir):]
 
