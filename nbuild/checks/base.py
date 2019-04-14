@@ -3,7 +3,6 @@ from nbuild.log import ilog
 
 
 class Type(enum.Enum):
-    SHOW = enum.auto()
     FIX = enum.auto()
     DIFF = enum.auto()
     EDIT = enum.auto()
@@ -26,9 +25,8 @@ class Check():
         for item in self.items:
             if not self.validate(item):
                 self.fails.append(item)
-                if self.state is Type.SHOW:
-                    self.show(item)
-                elif self.state is Type.FIX:
+                self.show(item)
+                if self.state is Type.FIX:
                     self.fix(item)
                 elif self.state is Type.DIFF:
                     self.diff(item)
