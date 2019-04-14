@@ -2,6 +2,7 @@
 
 import argparse
 import importlib.util
+import nbuild.checks.base as base
 from nbuild.checks import check_package
 from nbuild.manifest import load_manifest
 from nbuild.stdenv.build import Build, current_build, set_current_build
@@ -35,12 +36,37 @@ def parse_args():
         default=0,
         help="Make the operation more talkative",
     )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+            '--fix',
+            action='store_true',
+            help="Set the action to FIX (default)",
+    )
+    group.add_argument(
+            '--edit',
+            action='store_true',
+            help="Set the action to EDIT",
+    )
+    group.add_argument(
+            '--diff',
+            action='store_true',
+            help="Set the action to DIFF",
+    )
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     set_args(args)
+
+    if args.diff:
+        base.Check.global_state = base.Type.DIFF
+    elif args.edit:
+        base.Check.global_state = base.Type.EDIT
+    else:
+        base.Check.global_state = base.Type.FIX
+
+    print(base.Check.global_state)
 
     for manifest_path in args.manifests:
         spec = load_manifest(manifest_path)

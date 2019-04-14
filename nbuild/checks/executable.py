@@ -45,11 +45,11 @@ class FilesExecCheck(base.Check):
 
 
 class ExecCheck():
-    def __init__(self, pkg):
+    def __init__(self, pkg, local_state=base.Check.global_state):
         self.pkg = pkg
+        self.state = local_state
 
     def run(self):
         ilog(f"Checking files execute permission")
-        FilesExecCheck(self.pkg, get_bin_files(self.pkg), local_state=base.Type.FIX).run()
-        FilesExecCheck(self.pkg, get_shlib_files(self.pkg), local_state=base.Type.FIX).run()
-
+        FilesExecCheck(self.pkg, get_bin_files(self.pkg), local_state=self.state).run()
+        FilesExecCheck(self.pkg, get_shlib_files(self.pkg), local_state=self.state).run()

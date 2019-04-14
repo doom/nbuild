@@ -10,16 +10,16 @@ class Type(enum.Enum):
 
 
 class Check():
-    global_state = Type.SHOW
+    global_state = None
 
     @staticmethod
     def commit(pkg):
         ilog("Recreating tarball")
         pkg.create_tarball()
 
-    def __init__(self, items, local_state=global_state):
+    def __init__(self, items, local_state=None):
         self.items = items
-        self.state = local_state
+        self.state = local_state or Check.global_state
         self.fails = []
 
     def run(self):
