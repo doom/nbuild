@@ -39,12 +39,12 @@ def elog(*args, indent=True):
     print(*args)
 
 
-def qlog(*args, indent=True, default=True):
+def qlog(*args, indent=True):
     cprint(f"[?]", "cyan", attrs=['bold'], end=' ')
     if indent:
         print("\t", end='')
     print(*args, end='')
-    return input("[Y/n] " if default else "[y/N] ")
+    return input()
 
 
 def flog(args):

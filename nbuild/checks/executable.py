@@ -3,6 +3,7 @@ import stat
 from nbuild.log import elog, ilog
 import nbuild.checks.base as base
 import nbuild.checks.check as check
+import nbuild.checks.edit as edit
 
 
 def get_shlib_files(pkg):
@@ -42,6 +43,10 @@ class FilesExecCheck(base.Check):
 
     def diff(self, item):
         ilog("X permissions would be added")
+
+    def edit(self, item):
+        # edit.open_shell(os.path.dirname(item))
+        edit.open_editor(item)
 
     def _remove_prefix(self, item):
         return item[len(self.pkg.install_dir):]
