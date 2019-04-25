@@ -63,7 +63,7 @@ def main():
         base.Check.global_state = base.Type.DIFF
     elif args.edit:
         base.Check.global_state = base.Type.EDIT
-    else:
+    elif args.fix:
         base.Check.global_state = base.Type.FIX
 
     for manifest_path in args.manifests:

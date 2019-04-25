@@ -10,16 +10,15 @@ class Type(enum.Enum):
 
 
 class Check():
-    global_state = None
+    global_state = Type.EDIT
 
     @staticmethod
     def commit(pkg):
         ilog("Recreating tarball")
         pkg.create_tarball()
 
-    def __init__(self, items, local_state=None):
+    def __init__(self, items):
         self.items = items
-        self.state = local_state or Check.global_state
         self.fails = []
 
     def run(self):
@@ -27,11 +26,11 @@ class Check():
             if not self.validate(item):
                 self.fails.append(item)
                 self.show(item)
-                if self.state is Type.FIX:
+                if Check.global_state is Type.FIX:
                     self.fix(item)
-                elif self.state is Type.DIFF:
+                elif Check.global_state is Type.DIFF:
                     self.diff(item)
-                elif self.state is Type.EDIT:
+                elif Check.global_state is Type.EDIT:
                     ilog("The automatic changes would be as follows")
                     self.diff(item)
                     answer = edit.ask("Accept those changes? ")
