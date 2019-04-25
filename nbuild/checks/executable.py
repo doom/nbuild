@@ -45,8 +45,7 @@ class FilesExecCheck(base.Check):
         ilog("X permissions would be added")
 
     def edit(self, item):
-        # edit.open_shell(os.path.dirname(item))
-        edit.open_editor(item)
+        edit.open_shell(os.path.dirname(item))
 
     def _remove_prefix(self, item):
         return item[len(self.pkg.install_dir):]
