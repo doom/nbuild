@@ -3,6 +3,7 @@ import stat
 from nbuild.log import elog, ilog
 import nbuild.checks.base as base
 import nbuild.checks.check as check
+import nbuild.checks.edit as edit
 
 
 def get_shlib_files(pkg):
@@ -23,8 +24,8 @@ def get_bin_files(pkg):
 
 
 class FilesExecCheck(base.Check):
-    def __init__(self, pkg, files, local_state=None):
-        super().__init__(files, local_state=local_state)
+    def __init__(self, pkg, files):
+        super().__init__(files)
         self.pkg = pkg
 
     def validate(self, item):
@@ -40,6 +41,12 @@ class FilesExecCheck(base.Check):
         ilog(f"'{path_wo_prefix}' has been given execute permissions")
         os.chmod(item, perms | stat.S_IXOTH | stat.S_IXGRP | stat.S_IXUSR)
 
+    def diff(self, item):
+        ilog("X permissions would be added")
+
+    def edit(self, item):
+        edit.open_shell(os.path.dirname(item))
+
     def _remove_prefix(self, item):
         return item[len(self.pkg.install_dir):]
 
@@ -50,6 +57,5 @@ class ExecCheck():
 
     def run(self):
         ilog(f"Checking files execute permission")
-        FilesExecCheck(self.pkg, get_bin_files(self.pkg), local_state=base.Type.FIX).run()
-        FilesExecCheck(self.pkg, get_shlib_files(self.pkg), local_state=base.Type.FIX).run()
-
+        FilesExecCheck(self.pkg, get_bin_files(self.pkg)).run()
+        FilesExecCheck(self.pkg, get_shlib_files(self.pkg)).run()

@@ -125,20 +125,15 @@ class Package():
                 self.builder()
 
         ilog("Creating data.tar.gz", indent=False)
-        with pushd(self.install_dir):
-            files_count = 0
-            if get_args().verbose >= 1:
-                for root, _, filenames in os.walk('.'):
-                    for filename in filenames:
-                        dlog("Adding", os.path.join(root, filename))
-                        files_count += 1
-                dlog(f"(That's {files_count} files.)")
-
-            tarball_path = os.path.join(self.package_dir, 'data.tar.gz')
-            with tarfile.open(tarball_path, mode='w:gz') as archive:
-                archive.add('./')
+        self.create_tarball()
 
         ilog("Creating manifest.toml", indent=False)
+        self.create_manifest()
+
+        ilog(f"Finished building {self.id}.")
+        ilog(f"Output placed in {self.package_dir}")
+
+    def create_manifest(self):
         toml_path = os.path.join(self.package_dir, 'manifest.toml')
         with open(toml_path, 'w') as filename:
             manifest = {
@@ -153,8 +148,19 @@ class Package():
             }
             toml.dump(manifest, filename)
 
-        ilog(f"Finished building {self.id}.")
-        ilog(f"Output placed in {self.package_dir}")
+    def create_tarball(self):
+        with pushd(self.install_dir):
+            files_count = 0
+            if get_args().verbose >= 1:
+                for root, _, filenames in os.walk('.'):
+                    for filename in filenames:
+                        dlog("Adding", os.path.join(root, filename))
+                        files_count += 1
+                dlog(f"(That's {files_count} files.)")
+
+            tarball_path = os.path.join(self.package_dir, 'data.tar.gz')
+            with tarfile.open(tarball_path, mode='w:gz') as archive:
+                archive.add('./')
 
 
 def package(id: str, description: str, build_dependencies={}, run_dependencies={}):
