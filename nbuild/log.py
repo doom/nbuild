@@ -39,5 +39,13 @@ def elog(*args, indent=True):
     print(*args)
 
 
+def qlog(*args, indent=True):
+    cprint(f"[?]", "cyan", attrs=['bold'], end=' ')
+    if indent:
+        print("\t", end='')
+    print(*args, end='')
+    return input()
+
+
 def flog(args):
     cprint(f"[-] {args}", "red", attrs=['bold'])

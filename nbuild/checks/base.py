@@ -1,35 +1,43 @@
 import enum
-from nbuild.log import ilog
+from nbuild.log import ilog, qlog, wlog
+import nbuild.checks.edit as edit
 
 
 class Type(enum.Enum):
-    SHOW = enum.auto()
     FIX = enum.auto()
     DIFF = enum.auto()
     EDIT = enum.auto()
 
 
 class Check():
-    global_state = Type.SHOW
+    global_state = Type.EDIT
 
-    def __init__(self, items, local_state=None):
+    @staticmethod
+    def commit(pkg):
+        ilog("Recreating tarball")
+        pkg.create_tarball()
+
+    def __init__(self, items):
         self.items = items
-        self.state = local_state
         self.fails = []
 
     def run(self):
         for item in self.items:
             if not self.validate(item):
                 self.fails.append(item)
-                s = self.state or Check.global_state
-                if s is Type.SHOW:
-                    self.show(item)
-                elif s is Type.FIX:
+                self.show(item)
+                if Check.global_state is Type.FIX:
                     self.fix(item)
-                elif s is Type.DIFF:
+                elif Check.global_state is Type.DIFF:
                     self.diff(item)
-                elif s is Type.EDIT:
-                    self.edit(item)
+                elif Check.global_state is Type.EDIT:
+                    ilog("The automatic changes would be as follows")
+                    self.diff(item)
+                    answer = edit.ask("Accept those changes? ")
+                    if answer is True:
+                        self.fix(item)
+                    elif answer == 'edit':
+                        self.edit(item)
 
     def validate(self, item):
         raise NotImplementedError
@@ -48,8 +56,8 @@ class Check():
 
 
 class CheckOnManifest(Check):
-    def __init__(self, pkg, local_state=None):
-        super().__init__([pkg], local_state=local_state)
+    def __init__(self, pkg):
+        super().__init__([pkg])
 
     @staticmethod
     def commit(pkg):

@@ -7,8 +7,8 @@ import nbuild.checks.base as base
 
 
 class IdCheck(base.CheckOnManifest):
-    def __init__(self, pkg, local_state=None):
-        super().__init__(pkg, local_state=local_state)
+    def __init__(self, pkg):
+        super().__init__(pkg)
 
     def validate(self, item):
         pattern = re.compile(r'^[a-z\-]+::[a-z\-]+\/[a-z\-]+\d*#(?:\d+\.){2}\d+$')
@@ -19,8 +19,8 @@ class IdCheck(base.CheckOnManifest):
 
 
 class DescriptionCheck(base.CheckOnManifest):
-    def __init__(self, pkg, local_state=None):
-        super().__init__(pkg, local_state=local_state)
+    def __init__(self, pkg):
+        super().__init__(pkg)
 
     def validate(self, item):
         return len(item.description) >= 2 \
@@ -30,7 +30,7 @@ class DescriptionCheck(base.CheckOnManifest):
     def show(self, item):
         elog(
             f"The description of the package {item.id} "
-            "doesn't respect the required syntax."
+            "doesn't respect the required syntax"
         )
 
     def fix(self, item):
@@ -41,36 +41,3 @@ class DescriptionCheck(base.CheckOnManifest):
                 item.description += '.'
             if not item.description[0].isupper():
                 item.description = item.description[0].upper() + item.description[1:]
-
-
-# def id_syntax_check(package):
-#     ilog("Checking id")
-#     pattern = re.compile(r'^[a-z\-]+::[a-z\-]+\/[a-z\-]+\d*#(?:\d+\.){2}\d+$')
-#     if pattern.match(package.id) is None:
-#         elog(f"The ID {package.id} doesn't respect the required syntax.")
-#         return False
-#     return True
-#
-#
-# def desc_syntax_check(package):
-#     ilog("Checking description")
-#     pattern = re.compile(r'^[A-Z].*\.$')
-#     if pattern.match(package.description) is None:
-#         elog(
-#             f"The description of the package {package.id} "
-#             "doesn't respect the required syntax."
-#             )
-#         return False
-#     return True
-#
-#
-# def check_syntax(pkg):
-#     ret = all([
-#         id_syntax_check(pkg),
-#         desc_syntax_check(pkg),
-#     ])
-#     if ret:
-#         clog("\tAll syntax checks OK")
-#     else:
-#         elog("\tSome syntax checks failed")
-#     return ret
