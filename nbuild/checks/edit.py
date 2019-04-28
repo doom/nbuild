@@ -29,8 +29,6 @@ def open_editor(filepath):
     editor = os.environ.get('VISUAL') or os.environ.get('EDITOR')
     if editor is None:
         wlog("No $VISUAL nor $EDITOR environment variable found")
-    rcode = 1
-    while rcode != 0:
         editor = qlog("Please provide a valid editor: ")
-        ilog(f"Opening {filepath} with {editor}")
-        rcode = os.system(f'{editor} {filepath}')
+    ilog(f"Opening {filepath} with {editor}")
+    os.system(f'{editor} {filepath}')
