@@ -19,6 +19,16 @@ class IdCheck(base.CheckOnManifest):
     def show(self, item):
         elog(f"The ID {item.id} doesn't respect the required syntax.")
 
+    def fix(self, item):
+        wlog("Item ID cannot be automatically fixed")
+
+    def diff(self, item):
+        wlog("No change can be made automatically")
+
+    def edit(self, item):
+        toml_path = os.path.join(self.pkg.package_dir, 'manifest.toml')
+        edit.open_editor(toml_path)
+
 
 class DescriptionCheck(base.CheckOnManifest):
     def __init__(self, pkg):

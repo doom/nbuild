@@ -28,6 +28,7 @@ def check_package(pkg):
     # ExeCheck.ExecCheck(pkg).run()
     stx_chk.IdCheck(pkg).run()
     stx_chk.DescriptionCheck(pkg).run()
-    base.CheckOnManifest.commit(pkg)
     ExeCheck.ExecCheck(pkg).run()
+
+    base.CheckOnManifest.commit(pkg)
     base.Check.commit(pkg)
