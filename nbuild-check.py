@@ -36,6 +36,11 @@ def parse_args():
         default=0,
         help="Make the operation more talkative",
     )
+    parser.add_argument(
+        '--visual',
+        action='store_true',
+        help="Try to use more visual tools (only makes sense with --edit, which is by default)",
+    )
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
             '--fix',

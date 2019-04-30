@@ -1,5 +1,6 @@
 import os
 from nbuild.log import ilog, wlog, qlog
+from nbuild.args import get_args
 
 
 def ask(question, default=True):
@@ -19,6 +20,13 @@ def ask(question, default=True):
 
 
 def open_shell(path):
+    # args = get_args()
+    # if args.visual:
+    #     ret = os.system(f'xdg-open {path}')
+    #     if ret == 0:
+    #         return
+    #     else:
+    #         wlog("A problem occured while using xdg-open")
     shell = os.environ.get('SHELL')
     if shell is None:
         wlog("No $SHELL environment variable found")
@@ -28,9 +36,19 @@ def open_shell(path):
 
 
 def open_editor(filepath):
-    editor = os.environ.get('VISUAL') or os.environ.get('EDITOR')
-    if editor is None:
-        wlog("No $VISUAL nor $EDITOR environment variable found")
-        editor = qlog("Please provide a valid editor: ")
+    args = get_args()
+    if args.visual:
+        editor = os.environ.get('VISUAL')
+        if editor is None:
+            wlog("No $VISUAL environment variable found, trying $EDITOR")
+            editor = os.environ.get('EDITOR')
+            if editor is None:
+                wlog("No $EDITOR environment variable found")
+                editor = qlog("Please provide a valid editor: ")
+    else:
+        editor = os.environ.get('EDITOR')
+        if editor is None:
+            wlog("No $EDITOR environment variable found")
+            editor = qlog("Please provide a valid editor: ")
     ilog(f"Opening {filepath} with {editor}")
     os.system(f'{editor} {filepath}')
