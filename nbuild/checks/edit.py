@@ -20,13 +20,13 @@ def ask(question, default=True):
 
 
 def open_shell(path):
-    # args = get_args()
-    # if args.visual:
-    #     ret = os.system(f'xdg-open {path}')
-    #     if ret == 0:
-    #         return
-    #     else:
-    #         wlog("A problem occured while using xdg-open")
+    args = get_args()
+    if args.visual:
+        ret = os.system(f'xdg-open {path}')
+        if ret == 0:
+            return
+        else:
+            wlog("A problem occured while using xdg-open, falling back on opening a shell")
     shell = os.environ.get('SHELL')
     if shell is None:
         wlog("No $SHELL environment variable found")
