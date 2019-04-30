@@ -100,25 +100,36 @@ def lib_checker(package: Package, lib_extension=''):
 
 
 def dev_check(package: Package):
-    return all(
-        [
-            man_checker(package, 3),
-            bin_installed(package),
-            doc_installed(package),
-            lib_installed(package),
-        ]
-    )
+    BinNotInstalled(package, correct_split='')
+    DocNotExist(package)
+    StaticLibsNotExist(package)
+    # return all(
+    #     [
+    #         man_checker(package, 3),
+    #         bin_installed(package),
+    #         doc_installed(package),
+    #         lib_installed(package),
+    #     ]
+    # )
 
 
 def doc_check(package: Package):
-    return all(
-        [
-            man_installed(package),
-            bin_installed(package),
-            lib_installed(package),
-            header_installed(package)
-        ]
-    )
+    BinNotInstalled(package, correct_split='')
+    DirsNotExist(
+            package,
+            ['usr/share/man'],
+            show_str=lambda _, __: "There should be no man in the Doc split",
+            correct_split=None)
+    LibNotInstalled(package, correct_split=None)
+    HeaderNotInstaled(package)
+    # return all(
+    #     [
+    #         man_installed(package),
+    #         bin_installed(package),
+    #         lib_installed(package),
+    #         header_installed(package)
+    #     ]
+    # )
 
 
 def bin_check(package: Package):
@@ -126,27 +137,35 @@ def bin_check(package: Package):
 
 
 def lib_check(package: Package):
-    return all(
-        [
-            man_installed(package),
-            bin_installed(package),
-            lib_checker(package, '.a'),
-            doc_installed(package),
-            header_installed(package)
-        ]
-    )
+    BinNotInstalled(package, correct_split='')
+    DynLibsNotExist(package)
+    DocNotExist(package)
+    HeaderNotInstaled(package)
+
+    # return all(
+    #     [
+    #         man_installed(package),
+    #         bin_installed(package),
+    #         lib_checker(package, '.a'),
+    #         doc_installed(package),
+    #         header_installed(package)
+    #     ]
+    # )
 
 
 def classic_check(package: Package):
-    return all(
-        [
-            man_installed(package, 3),
-            lib_checker(package, '.so'),
-            doc_installed(package),
-            header_installed(package)
-        ]
-    )
-    ManNotInstalled(package, 3).run()
+    ManNotInstalled(package, 3, correct_split='dev')
+    DynLibsNotExist(package)
+    DocNotExist(package)
+    HeaderNotInstaled(package)
+    # return all(
+    #     [
+    #         man_installed(package, 3),
+    #         lib_checker(package, '.so'),
+    #         doc_installed(package),
+    #         header_installed(package)
+    #     ]
+    # )
 
 
 def suffix_checks(package: Package):
@@ -172,11 +191,12 @@ def suffix_checks(package: Package):
 
 # TODO add a way to check only for /usr/share/man (no subdirs)
 class ManNotInstalled(base.Check):
-    def __init__(self, pkg, nums, correct_split, local_state=None):
+    def __init__(self, pkg, nums, correct_split):
         if isinstance(nums, int):
             nums = [nums]
-        super().__init__(nums, local_state=local_state)
+        super().__init__(nums)
         self.pkg = pkg
+        self.run()
 
     def validate(self, item):
         man_dir = os.path.join(self.pkg, 'usr/share/man', item)
@@ -189,11 +209,52 @@ class ManNotInstalled(base.Check):
         raise NotImplementedError
 
 
+class FilesNotExistExtensionInDir(base.Check):
+    def __init__(self, pkg, extension, dirs, correct_split):
+        files = []
+        for dirent in dirs:
+            files += os.listdir(os.path.join(pkg.install_dir, dirent))
+        super().__init__(files)
+        self.pkg = pkg
+        self.extension = extension
+        self.correct_split = correct_split
+        self.run()
+
+    def validate(self, item):
+        return not item.endswith(self.extension)
+
+    def show(self, item):
+        elog(f"File with extension '{self.extension} should not be in this split'")
+
+    def diff(self, item):
+        ilog(f"File would be moved to split {self.correct_split}")
+
+
+class DynLibsNotExist(FilesNotExistExtensionInDir):
+    def __init__(self, package):
+        super.__init__(
+            package,
+            dirs=['usr/lib', 'usr/lib64', 'usr/lib32'],
+            extension='.so',
+            correct_split='dev')
+
+
+class StaticLibsNotExist(FilesNotExistExtensionInDir):
+    def __init__(self, package):
+        super.__init__(
+            package,
+            dirs=['usr/lib', 'usr/lib64', 'usr/lib32'],
+            extension='.a',
+            correct_split='lib')
+
+
 class DirsNotExist(base.Check):
-    def __init__(self, pkg, dirs, show_str, correct_split, local_state=None):
-        super().__init__(dirs, local_state=local_state)
+    def __init__(self, pkg, dirs, show_str, correct_split):
+        super().__init__(dirs)
         self.pkg = pkg
         self.show_str = show_str
+        self.correct_split = correct_split
+        self.run()
 
     def validate(self, item):
         return not os.path.exists(os.path.join(self.pkg.install_dir, item))
