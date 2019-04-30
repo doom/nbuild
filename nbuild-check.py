@@ -15,7 +15,7 @@ def parse_args():
     )
     parser.add_argument(
         'manifests',
-        nargs='*',
+        nargs='+',
     )
     parser.add_argument(
         '-o',

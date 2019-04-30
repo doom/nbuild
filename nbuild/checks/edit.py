@@ -1,6 +1,7 @@
 import os
 from nbuild.log import ilog, wlog, qlog
 
+
 def ask(question, default=True):
     while True:
         answer = qlog(question + '[Y/n/e] ').lower()
@@ -15,6 +16,7 @@ def ask(question, default=True):
         else:
             wlog("Unrecognized answer")
             continue
+
 
 def open_shell(path):
     shell = os.environ.get('SHELL')

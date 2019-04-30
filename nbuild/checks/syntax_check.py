@@ -57,6 +57,7 @@ class DescriptionCheck(base.CheckOnManifest):
                 item.description += '.'
             if not self.capital:
                 item.description = item.description[0].upper() + item.description[1:]
+            base.CheckOnManifest.commit(self.pkg)
 
     def diff(self, item):
         if not self.capital:

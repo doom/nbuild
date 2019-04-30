@@ -30,5 +30,4 @@ def check_package(pkg):
     stx_chk.DescriptionCheck(pkg).run()
     ExeCheck.ExecCheck(pkg).run()
 
-    base.CheckOnManifest.commit(pkg)
     base.Check.commit(pkg)
