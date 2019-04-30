@@ -40,12 +40,12 @@ def parse_args():
     group.add_argument(
             '--fix',
             action='store_true',
-            help="Set the action to FIX (default)",
+            help="Set the action to FIX",
     )
     group.add_argument(
             '--edit',
             action='store_true',
-            help="Set the action to EDIT",
+            help="Set the action to EDIT (default)",
     )
     group.add_argument(
             '--diff',
