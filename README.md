@@ -1,53 +1,30 @@
-# Nest Build - Nest's Package Builder
+# Nest Build 
 
-`Nest Build`, or `nbuild`, is [Nest](https://github.com/raven-os/nest)'s package builder. It takes a `Build Manifest` (a python file) that describes the steps to be taken to build one or more packages, from retrieving the source files to achieving a fully built program.
+*An automated package builder for lazy maintainers.*
 
-Examples can be found in the [nbuild-manifests](https://github.com/raven-os/nbuild-manifests) GitHub repository.
+## Dependencies
 
-`nbuild` places it's content in 4 seperate folders:
-  * `./cache/downloads/`: All downloads are placed there so they can be re-used when rebuilding the same package
-  * `./cache/builds/`: Packages are extracted and built there.
-  * `./cache/installs/`: Packages are installed in this folder before being compressed
-  * `./packages/`: The resulting package (`data.tar.gz` and `manifest.toml`) is placed there when the operation is successfully completed.
-
-## Prerequisites
-
-* python3.6+
-
-To install nbuild's dependencies, run
+Nest build requires python3.6+. To install its dependencies, run
 
 ```bash
-pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
-**/!\Warning: Nest-build does NOT provide any kind of isolation /!\**
+## How it works
 
-If the manifest is ill-formed, your main system may be damaged. That's why we recommend the use of an isolation system like Docker.
+Nest build uses a python file (called a build manifest) to describe how the compilation should be performed. The build manifest downloads the source code of a software, compiles it and splits it into multiple packages.
+All of this is done thanks to a powerful library included in nest build: the standard compilation library. This library automates all the hard tasks while still providing a great granularity of modifications regarding those automated tasks.
 
-### Examples
+Examples of build manifests can be found in the [nbuild-manifests](https://github.com/raven-os/nbuild-manifests/) repository.
 
-Here is an example manifest for a basic C project based on GNU's autotools.
+## Documentation
 
-```python
-#!/usr/bin/env python3.6
-# -*- coding: utf-8 -*-
-"""
-Example of a build manifest.
-"""
+The documentation of the standard compilation library is hosted [here](https://docs.raven-os.org/nbuild/master/), but it can also be locally generated with the following commands:
 
-from nbuild.stdenv.package import package
-from nbuild.stdenv.fetch import fetch_url
-from nbuild.stdenv.autotools import build_autotools_package
-
-
-@package(
-    id='stable::sys-lib/helloworld#1.0.0',
-)
-def build_helloworld():
-    build_autotools_package(
-        fetch=lambda: fetch_url(
-            url='https://example.com/helloworld.tar.gz',
-            sha256='729e344a01e52c822bdfdec61e28d6eda02658d2e7d2b80a9b9029f41e212dde',
-        ),
-    )
+```bash
+$ pip install -r docs/requirements.txt
+$ sphinx-apidoc -f --separate -o docs/source/ .
+$ make -C docs html
 ```
+
+The main page can be accessed at `docs/build/html/index.html`.
