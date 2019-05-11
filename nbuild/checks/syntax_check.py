@@ -55,15 +55,17 @@ class DescriptionCheck(base.CheckOnManifest):
         else:
             if not self.full_stop:
                 item.description += '.'
+                ilog("Full stop has been added at the end")
             if not self.capital:
                 item.description = item.description[0].upper() + item.description[1:]
+                ilog("First letter has been converted to uppercase")
             base.CheckOnManifest.commit(self.pkg)
 
     def diff(self, item):
         if not self.capital:
-            ilog("The first letter will be converted to uppercase")
+            ilog("The first letter would be converted to uppercase")
         if not self.full_stop:
-            ilog("A full stop will be added at the end")
+            ilog("A full stop would be added at the end")
 
     def edit(self, item):
         toml_path = os.path.join(self.pkg.package_dir, 'manifest.toml')
