@@ -1,1 +1,1 @@
-from nbuild.checks.check import check_package
+from stdlib.checks.check import check_package, is_check

@@ -1,6 +1,6 @@
 import os
-from nbuild.log import ilog, wlog, qlog
-from nbuild.args import get_args
+from stdlib.log import ilog, wlog, qlog
+from core.args import get_args
 
 
 def ask(question, default=True):

@@ -77,6 +77,11 @@ def get_args():
     return nbuild_args
 
 
+def _set_args(args):
+    global nbuild_args
+    nbuild_args = args
+
+
 def print_usage():
     """Print the usage to the standard output."""
     nbuild_parser.print_help()

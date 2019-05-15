@@ -4,8 +4,8 @@
 import os
 import re
 import glob
-from nbuild.stdenv.package import Package
-from nbuild.log import elog, clog, ilog
+from stdlib.package import Package
+from stdlib.log import elog, slog, ilog
 
 
 def man_checker(package: Package, man_section):
@@ -161,6 +161,6 @@ def suffix_checks(package: Package):
     else:
         ret = classic_check(package)
     if ret:
-        clog("\tEverything seems OK")
+        slog("\tEverything seems OK")
     else:
         elog("\tSome files should not be there")

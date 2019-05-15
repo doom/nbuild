@@ -2,11 +2,20 @@
 
 import argparse
 import importlib.util
-import nbuild.checks.base as base
-from nbuild.checks import check_package
-from nbuild.manifest import load_manifest
-from nbuild.stdenv.build import Build, current_build, set_current_build
-from nbuild.args import set_args
+import stdlib.checks.base as base
+from stdlib.checks.check import set_check
+from stdlib.checks import check_package
+from stdlib.build import Build, current_build, _set_current_build
+import core.args
+import stdlib.log
+
+
+_is_check = False
+
+
+def is_check():
+    global is_check
+    return is_check
 
 
 def parse_args():
@@ -14,8 +23,8 @@ def parse_args():
         description="Checks package compiled with nbuild",
     )
     parser.add_argument(
-        'manifests',
-        nargs='+',
+        'manifest',
+        nargs='?',
     )
     parser.add_argument(
         '-o',
@@ -62,7 +71,8 @@ def parse_args():
 
 def main():
     args = parse_args()
-    set_args(args)
+    core.args._set_args(args)
+    set_check()
 
     if args.diff:
         base.Check.global_state = base.Type.DIFF
@@ -71,14 +81,21 @@ def main():
     elif args.fix:
         base.Check.global_state = base.Type.FIX
 
-    for manifest_path in args.manifests:
-        spec = load_manifest(manifest_path)
-        set_current_build(Build())
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+    manifest_path = args.manifest
+    spec = importlib.util.spec_from_file_location('build_manifest', manifest_path)
+    if not spec:
+        stdlib.log.flog(f"Failed to load Build Manifest located at path \"{manifest_path}\"")
+        exit(1)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    # for manifest_path in args.manifests:
+    #     spec = load_manifest(manifest_path)
+    #     # _set_current_build(Build(), )
+    #     module = importlib.util.module_from_spec(spec)
+    #     spec.loader.exec_module(module)
 
-        for pkg in current_build().packages:
-            check_package(pkg)
+    #     for pkg in current_build().packages:
+    #         check_package(pkg)
 
 
 if __name__ == '__main__':

@@ -79,7 +79,6 @@ def main():
     if not spec:
         stdlib.log.flog(f"Failed to load Build Manifest located at path \"{manifest_path}\"")
         exit(1)
-
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
 

@@ -1,13 +1,14 @@
 import os
 import stat
-from nbuild.log import elog, ilog
-import nbuild.checks.base as base
-import nbuild.checks.check as check
-import nbuild.checks.edit as edit
+from stdlib.log import elog, ilog
+import stdlib.checks.base as base
+import stdlib.checks.check as check
+import stdlib.checks.edit as edit
 
 
-def get_shlib_files(pkg):
-    dirs = check.find_dirs_ending_in('lib', pkg.install_dir)
+def get_shlib_files(build):
+    # dirs = check.find_dirs_ending_in('lib', build.install_cache)
+    dirs = map(lambda x: os.path.join(build.install_cache, x), ['usr/lib64'])
     files = []
     for dirent in dirs:
         files += [os.path.join(dirent, x) for x in os.listdir(dirent)
@@ -15,8 +16,8 @@ def get_shlib_files(pkg):
     return files
 
 
-def get_bin_files(pkg):
-    dirs = check.find_dirs_ending_in('bin', pkg.install_dir)
+def get_bin_files(build):
+    dirs = check.find_dirs_ending_in('bin', build.install_cache)
     files = []
     for dirent in dirs:
         files += [os.path.join(dirent, x) for x in os.listdir(dirent)]
@@ -24,9 +25,9 @@ def get_bin_files(pkg):
 
 
 class FilesExecCheck(base.Check):
-    def __init__(self, pkg, files):
+    def __init__(self, build, files):
         super().__init__(files)
-        self.pkg = pkg
+        self.build = build
 
     def validate(self, item):
         return os.access(item, os.X_OK)
@@ -48,14 +49,14 @@ class FilesExecCheck(base.Check):
         edit.open_shell(os.path.dirname(item))
 
     def _remove_prefix(self, item):
-        return item[len(self.pkg.install_dir):]
+        return item[len(self.build.install_cache):]
 
 
 class ExecCheck():
-    def __init__(self, pkg):
-        self.pkg = pkg
+    def __init__(self, build):
+        self.build = build
 
     def run(self):
         ilog(f"Checking files execute permission")
-        FilesExecCheck(self.pkg, get_bin_files(self.pkg)).run()
-        FilesExecCheck(self.pkg, get_shlib_files(self.pkg)).run()
+        FilesExecCheck(self.build, get_bin_files(self.build)).run()
+        FilesExecCheck(self.build, get_shlib_files(self.build)).run()

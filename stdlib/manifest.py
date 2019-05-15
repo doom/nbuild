@@ -32,6 +32,7 @@ import os
 import core
 import stdlib.log
 from typing import List, Dict
+from stdlib.checks import check_package, is_check
 
 
 class BuildManifestMetadata():
@@ -216,19 +217,34 @@ def manifest(
             builder,
         )
 
-        # Install build dependencies
-        for build_dep in build_dependencies:
-            stdlib.log.slog(f"Installing build dependency \"{build_dep}\"")
+        if not is_check():
+            # Install build dependencies
+            for build_dep in build_dependencies:
+                stdlib.log.slog(f"Installing build dependency \"{build_dep}\"")
 
-        for build in manifest.builds():
-            stdlib.log.slog(f"Building {build}")
+            for build in manifest.builds():
+                stdlib.log.slog(f"Building {build}")
 
-            # Save state before building
-            with stdlib.pushd(), stdlib.pushenv(), stdlib.log.pushlog():
-                pkgs = build.build()
+                # Save state before building
+                with stdlib.pushd(), stdlib.pushenv(), stdlib.log.pushlog():
+                    pkgs = build.build()
 
-                # Wrap packages
-                for pkg in pkgs:
-                    pkg.wrap()
+                    # Wrap packages
+                    for pkg in pkgs:
+                        pkg.wrap()
+        else:
+            for build in manifest.builds():
+                stdlib.log.slog(f"Checking {build}")
+
+                # Save state before building
+                with stdlib.pushd(), stdlib.pushenv(), stdlib.log.pushlog():
+                    stdlib.build._set_current_build(build)
+                    check_package(build)
+                    # pkgs = build.build()
+
+                    # # Wrap packages
+                    # for pkg in pkgs:
+                    #     pkg.wrap()
+
 
     return exec_manifest

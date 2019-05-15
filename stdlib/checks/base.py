@@ -1,6 +1,6 @@
 import enum
-from nbuild.log import ilog, qlog, wlog
-import nbuild.checks.edit as edit
+from stdlib.log import ilog, qlog, wlog
+import stdlib.checks.edit as edit
 
 
 class Type(enum.Enum):
@@ -13,9 +13,9 @@ class Check():
     global_state = Type.EDIT
 
     @staticmethod
-    def commit(pkg):
+    def commit(build):
         ilog("Recreating tarball")
-        pkg.create_tarball()
+        build.create_tarball()
 
     def __init__(self, items):
         self.items = items
@@ -56,10 +56,10 @@ class Check():
 
 
 class CheckOnManifest(Check):
-    def __init__(self, pkg):
-        super().__init__([pkg])
+    def __init__(self, build):
+        super().__init__([build])
 
     @staticmethod
-    def commit(pkg):
+    def commit(build):
         ilog("Recreating manifest.toml")
-        pkg.create_manifest()
+        build.create_manifest()

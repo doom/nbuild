@@ -1,10 +1,22 @@
 import os
-import nbuild.checks.executable as ExeCheck
-from nbuild.checks.dependencies import check_deps
-from nbuild.log import ilog
-from nbuild.checks.suffix_check import suffix_checks
-import nbuild.checks.base as base
-import nbuild.checks.syntax_check as stx_chk
+import stdlib.checks.executable as ExeCheck
+from stdlib.checks.dependencies import check_deps
+from stdlib.log import ilog
+from stdlib.checks.suffix_check import suffix_checks
+import stdlib.checks.base as base
+import stdlib.checks.syntax_check as stx_chk
+
+_is_check = False
+
+
+def set_check():
+    global _is_check
+    _is_check = True
+
+
+def is_check():
+    global _is_check
+    return _is_check
 
 
 def find_dirs_ending_in(end, path):
@@ -15,19 +27,20 @@ def find_dirs_ending_in(end, path):
     return dirs
 
 
-def check_package(pkg):
-    suffix = pkg.name.split('-')[-1] if '-' in pkg.name else None
-    ilog(f"Checking package installed at {pkg.install_dir}", indent=False)
+def check_package(build):
+    # name = build.manifest.metadata.name
 
-    # check_syntax(pkg)
+    # suffix = build.name.split('-')[-1] if '-' in build.name else None
+
+    # check_syntax(build)
     # if suffix is None or suffix == 'bin':
-    #     check_deps(pkg)
-    #     check_exec(pkg)
-    # suffix_checks(pkg)
+    #     check_deps(build)
+    #     check_exec(build)
+    # suffix_checks(build)
     # ilog("All checks done")
-    # ExeCheck.ExecCheck(pkg).run()
-    stx_chk.IdCheck(pkg).run()
-    stx_chk.DescriptionCheck(pkg).run()
-    ExeCheck.ExecCheck(pkg).run()
+    # ExeCheck.ExecCheck(build).run()
+    # stx_chk.IdCheck(build).run()
+    # stx_chk.DescriptionCheck(build).run()
+    ExeCheck.ExecCheck(build).run()
 
-    base.Check.commit(pkg)
+    # base.Check.commit(build)

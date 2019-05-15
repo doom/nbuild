@@ -1,9 +1,9 @@
 import os
 from elftools.elf.elffile import ELFFile
 from elftools.common.exceptions import ELFError
-from nbuild.log import ilog, elog, clog
-import nbuild.stdenv.package
-import nbuild.checks.check as check
+from stdlib.log import ilog, elog, slog
+import stdlib.package
+import stdlib.checks.check as check
 
 
 def get_deps(filename):
@@ -40,7 +40,7 @@ def check_file(file, pkg):
     for dep in found_deps:
         found = False
         for key in pkg.run_dependencies.keys():
-            _, _, name = nbuild.stdenv.package.Package.split_id(key)
+            _, _, name = stdlib.package.Package.split_id(key)
             if name in dep:
                 found = True
                 break
@@ -83,7 +83,7 @@ def check_deps(pkg):
         check_libs(pkg),
     ])
     if ret:
-        clog("\tDependency checks OK")
+        slog("\tDependency checks OK")
     else:
         elog("\tSome dependency checks failed")
     return ret

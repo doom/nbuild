@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import re
-from nbuild.log import elog, ilog, clog, wlog
-import nbuild.checks.base as base
-import nbuild.checks.edit as edit
+from stdlib.log import elog, ilog, slog, wlog
+import stdlib.checks.base as base
+import stdlib.checks.edit as edit
 import os
 
 
