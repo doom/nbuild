@@ -121,16 +121,9 @@ class Package():
         self.id = id
         self.description = description if description is not None else build.manifest.metadata.description
         self.description = self.description.replace('\n', ' ').strip()
-        print(build)
-        print(build.manifest)
-        print(build.manifest.metadata)
-        print(build.manifest.metadata.maintainer)
         self.maintainer = maintainer if maintainer is not None else build.manifest.metadata.maintainer
-        print('bonjour3')
         self.licenses = licenses if licenses is not None else build.manifest.metadata.licenses
-        print('bonjour1')
         self.upstream_url = upstream_url if upstream_url is not None else build.manifest.metadata.upstream_url
-        print('bonjour5')
         self.run_dependencies = copy.deepcopy(run_dependencies)
 
         self.wrap_cache = get_wrap_cache(self)
