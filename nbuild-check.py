@@ -71,6 +71,9 @@ def parse_args():
 
 def main():
     args = parse_args()
+    if args.manifest is None:
+        stdlib.log.flog("No path to a build manifest given.")
+        exit(1)
     core.args._set_args(args)
     set_check()
 
@@ -88,14 +91,6 @@ def main():
         exit(1)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    # for manifest_path in args.manifests:
-    #     spec = load_manifest(manifest_path)
-    #     # _set_current_build(Build(), )
-    #     module = importlib.util.module_from_spec(spec)
-    #     spec.loader.exec_module(module)
-
-    #     for pkg in current_build().packages:
-    #         check_package(pkg)
 
 
 if __name__ == '__main__':

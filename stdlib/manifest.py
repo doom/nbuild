@@ -246,5 +246,4 @@ def manifest(
                     # for pkg in pkgs:
                     #     pkg.wrap()
 
-
     return exec_manifest
