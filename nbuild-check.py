@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
+import os
+import sys
 import argparse
 import importlib.util
 import stdlib.checks.base as base
 from stdlib.checks.check import set_check
-from stdlib.checks import check_package
-from stdlib.build import Build, current_build, _set_current_build
 import core.args
 import stdlib.log
 
@@ -29,27 +29,36 @@ def parse_args():
     parser.add_argument(
         '-o',
         '--output-dir',
-        default='packages/',
-        help="Output directory for built packages",
+        default=os.path.join(  # Default path is script_dir/packages
+            os.getcwd(),
+            os.path.dirname(sys.argv[0]),
+            'packages',
+        ),
+        help="Output directory for built packages. Default: packages/",
     )
     parser.add_argument(
         '-c',
         '--cache-dir',
-        default='cache/',
-        help="Cache directory used when downloading and building packages",
+        default=os.path.join(  # Default path is script_dir/cache
+            os.getcwd(),
+            os.path.dirname(sys.argv[0]),
+            'cache',
+        ),
+        help="Cache directory used when downloading and building packages. Default: cache/",
     )
     parser.add_argument(
         '-v',
         '--verbose',
         action='count',
         default=0,
-        help="Make the operation more talkative",
+        help="Make the operation more talkative. Append it multiple times to make it even more talkative."
     )
     parser.add_argument(
         '--visual',
         action='store_true',
         help="Try to use more visual tools (only makes sense with --edit, which is by default)",
     )
+
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
             '--fix',
