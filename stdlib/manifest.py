@@ -236,7 +236,7 @@ def manifest(
             for build in manifest.builds():
                 stdlib.log.slog(f"Checking {build}")
 
-                # Save state before building
+                # Save state before checking
                 with stdlib.pushd(), stdlib.pushenv(), stdlib.log.pushlog():
                     stdlib.build._set_current_build(build)
                     check_package(build)
