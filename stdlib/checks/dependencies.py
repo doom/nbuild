@@ -4,6 +4,8 @@ from elftools.common.exceptions import ELFError
 from stdlib.log import ilog, elog, slog
 import stdlib.package
 import stdlib.checks.check as check
+import stdlib.checks.base as base
+import requests
 
 
 def get_deps(filename):
@@ -87,3 +89,75 @@ def check_deps(pkg):
     else:
         elog("\tSome dependency checks failed")
     return ret
+
+
+###############################################################################
+###############################################################################
+
+
+class DepsExistCheck(base.Check):
+    def __init__(self, build):
+        super().__init__([
+            'beta::sys-lib/libncurses6#6.1.0',
+            'beta::sys-lib/zlib1#1.2.11',
+            'prout::sys-lib/zlib1#1.2.11',
+            'beta::prout/zlib1#1.2.11',
+            'beta::sys-lib/zlib1#1.2.11',
+            'beta::sys-lib/bonjour#1.0.0',
+            'beta::sys-lib/libncurses6#6.1.0',
+        ])
+        self.build = build
+        self.error = {}
+
+    def validate(self, item):
+        self.error['repository'] = None
+        repository, category, name, version = self.split(item)
+        url = f'https://{repository}.raven-os.org/api/p/{category}/{name}/{version}'
+        if repository not in ['stable', 'beta', 'unstable']:
+            self.error['repository'] = repository
+            return False
+        response = requests.get(url)
+        return response.ok
+
+    def show(self, item):
+        if self.error['repository'] is not None:
+            elog(f"The repository '{self.error['repository']}' doesn't exist")
+        elog(f"The package '{item}' was not found")
+
+    def fix(self, item):
+        print('fix')
+
+    def edit(self, item):
+        print('edit')
+
+    def diff(self, item):
+        print('diff')
+
+    @staticmethod
+    def split(name):
+        repo_end = name.find('::')
+        repository = name[:repo_end]
+        name = name[repo_end + 2:]
+
+        category_end = name.find('/')
+        category = name[:category_end]
+        name = name[category_end + 1:]
+
+        pkg_name_end = name.find('#')
+        pkg_name = name[:pkg_name_end]
+        name = name[pkg_name_end + 1:]
+
+        version = name
+        return repository, category, pkg_name, version
+
+#     def get_elf_deps(elf_path):
+#         with open(elf_path, 'rb') as file:
+#             try:
+#                 elf = ELFFile(file)
+#                 dyn = elf.get_section_by_name(".dynamic")
+#                 if dyn is not None:
+#                     for tag in dyn.iter_tags():
+#                         if tag.entry.d_tag == 'DT_NEEDED':
+#                             yield tag.needed
+#             except ELFError:
+#                 yield None

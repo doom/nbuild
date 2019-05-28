@@ -5,6 +5,7 @@ from stdlib.log import ilog
 from stdlib.checks.suffix_check import suffix_checks
 import stdlib.checks.base as base
 import stdlib.checks.syntax_check as stx_chk
+import stdlib.checks.dependencies as deps
 
 _is_check = False
 
@@ -42,5 +43,6 @@ def check_package(build):
     # stx_chk.IdCheck(build).run()
     # stx_chk.DescriptionCheck(build).run()
     ExeCheck.ExecCheck(build).run()
+    deps.DepsExistCheck(build).run()
 
     # base.Check.commit(build)
