@@ -398,8 +398,7 @@ class Package():
             }
             toml.dump(manifest, filename)
 
-    def refresh_manifest_wrap_date(self):
-        toml_path = os.path.join(self.package_cache, 'manifest.toml')
+    def refresh_manifest_wrap_date(self, toml_path):
         manifest = toml.load(toml_path)
         manifest['wrap_date'] = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
         with open(toml_path, 'w') as filename:

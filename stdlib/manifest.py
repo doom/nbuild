@@ -263,9 +263,16 @@ def manifest(
                     # Wrap packages
                     for pkg in pkgs:
                         with stdlib.log.pushlog():
+                            os.rename(
+                                        os.path.join(pkg.wrap_cache, 'manifest.toml'),
+                                        os.path.join(pkg.package_cache, 'manifest.toml'),
+                                    )
                             os.remove(os.path.join(pkg.wrap_cache, 'data.tar.gz'))
-                            os.remove(os.path.join(pkg.wrap_cache, 'manifest.toml'))
-                            pkg.wrap()
+                            pkg.create_data_tar()
+                            stdlib.log.slog("Updating manifest.toml")
+                            pkg.refresh_manifest_wrap_date(os.path.join(pkg.package_cache, 'manifest.toml'))
+                            stdlib.log.slog("Creating package.nest")
+                            pkg.create_package_nest()
 
                 stdlib.log.slog(f"Done!")
 
