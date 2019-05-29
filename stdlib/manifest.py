@@ -263,7 +263,9 @@ def manifest(
                     # Wrap packages
                     for pkg in pkgs:
                         with stdlib.log.pushlog():
-                            # pkg.wrap()
+                            os.remove(os.path.join(pkg.wrap_cache, 'data.tar.gz'))
+                            os.remove(os.path.join(pkg.wrap_cache, 'manifest.toml'))
+                            pkg.wrap()
                             print('wrap')
 
                 stdlib.log.slog(f"Done!")

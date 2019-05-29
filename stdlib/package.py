@@ -130,7 +130,7 @@ class Package():
         upstream_url: str = None,
         kind: stdlib.kind.Kind = None,
         run_dependencies: Dict[str, str]={},
-        clean_caches=True,
+        clean_wrap_cache=True,
     ):
         from core.cache import get_wrap_cache, get_package_cache
 
@@ -149,14 +149,14 @@ class Package():
         self.wrap_cache = get_wrap_cache(self)
         self.package_cache = get_package_cache(self)
 
-        if clean_caches:
+        if clean_wrap_cache:
             if os.path.exists(self.wrap_cache):
                 shutil.rmtree(self.wrap_cache)
             os.makedirs(self.wrap_cache)
 
-            if os.path.exists(self.package_cache):
-                shutil.rmtree(self.package_cache)
-            os.makedirs(self.package_cache)
+        if os.path.exists(self.package_cache):
+            shutil.rmtree(self.package_cache)
+        os.makedirs(self.package_cache)
 
     def is_empty(self) -> bool:
         """Test whether the ``wrap_cache`` of this :py:class:`.Package` contains at least a single file.
@@ -406,7 +406,7 @@ class Package():
 
         with tarfile.open(nest_file, 'r') as tar:
             tar.extractall(self.wrap_cache)
-        data_file = os.path.join(self.package_cache, f'data.tar.gz')
+        data_file = os.path.join(self.wrap_cache, 'data.tar.gz')
         with tarfile.open(data_file, 'r:gz') as tar:
             tar.extractall(self.wrap_cache)
 
