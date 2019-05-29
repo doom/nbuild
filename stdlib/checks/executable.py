@@ -4,11 +4,12 @@ from stdlib.log import elog, ilog
 import stdlib.checks.base as base
 import stdlib.checks.check as check
 import stdlib.checks.edit as edit
+import core.cache as cache
 
 
 def get_shlib_files(pkg):
     # dirs = check.find_dirs_ending_in('lib', pkg.install_cache)
-    dirs = map(lambda x: os.path.join(pkg.install_cache, x), ['usr/lib64'])
+    dirs = map(lambda x: os.path.join(cache.get_wrap_cache(pkg), x), ['usr/lib64'])
     files = []
     for dirent in dirs:
         files += [os.path.join(dirent, x) for x in os.listdir(dirent)
@@ -17,7 +18,7 @@ def get_shlib_files(pkg):
 
 
 def get_bin_files(pkg):
-    dirs = check.find_dirs_ending_in('bin', pkg.install_cache)
+    dirs = check.find_dirs_ending_in('bin', cache.get_wrap_cache(pkg))
     files = []
     for dirent in dirs:
         files += [os.path.join(dirent, x) for x in os.listdir(dirent)]
@@ -49,7 +50,7 @@ class FilesExecCheck(base.Check):
         edit.open_shell(os.path.dirname(item))
 
     def _remove_prefix(self, item):
-        return item[len(self.pkg.install_cache):]
+        return item[len(cache.get_wrap_cache(self.pkg)):]
 
 
 class ExecCheck():

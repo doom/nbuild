@@ -130,6 +130,7 @@ class Package():
         upstream_url: str = None,
         kind: stdlib.kind.Kind = None,
         run_dependencies: Dict[str, str]={},
+        clean_caches=True,
     ):
         from core.cache import get_wrap_cache, get_package_cache
 
@@ -148,14 +149,14 @@ class Package():
         self.wrap_cache = get_wrap_cache(self)
         self.package_cache = get_package_cache(self)
 
-    def clean_caches(self):
-        if os.path.exists(self.wrap_cache):
-            shutil.rmtree(self.wrap_cache)
-        os.makedirs(self.wrap_cache)
+        if clean_caches:
+            if os.path.exists(self.wrap_cache):
+                shutil.rmtree(self.wrap_cache)
+            os.makedirs(self.wrap_cache)
 
-        if os.path.exists(self.package_cache):
-            shutil.rmtree(self.package_cache)
-        os.makedirs(self.package_cache)
+            if os.path.exists(self.package_cache):
+                shutil.rmtree(self.package_cache)
+            os.makedirs(self.package_cache)
 
     def is_empty(self) -> bool:
         """Test whether the ``wrap_cache`` of this :py:class:`.Package` contains at least a single file.
@@ -399,6 +400,15 @@ class Package():
             os.remove('./manifest.toml')
             if self.kind == stdlib.kind.Kind.EFFECTIVE:
                 os.remove('./data.tar.gz')
+
+    def unwrap(self):
+        nest_file = os.path.join(self.package_cache, f'{self.id.name}-{self.id.version}.nest')
+
+        with tarfile.open(nest_file, 'r') as tar:
+            tar.extractall(self.wrap_cache)
+        data_file = os.path.join(self.package_cache, f'data.tar.gz')
+        with tarfile.open(data_file, 'r:gz') as tar:
+            tar.extractall(self.wrap_cache)
 
     def __str__(self):
         return str(self.id)

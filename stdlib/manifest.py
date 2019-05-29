@@ -244,7 +244,6 @@ def manifest(
                     # Wrap packages
                     for pkg in pkgs.values():
                         with stdlib.log.pushlog():
-                            pkg.clean_caches()
                             pkg.wrap()
 
                 stdlib.log.slog(f"Done!")
@@ -258,12 +257,14 @@ def manifest(
                         stdlib.build._set_current_build(build)
                         pkgs = get_splits(build)
                         for pkg in pkgs:
+                            pkg.unwrap()
                             check_package(pkg)
 
                     # Wrap packages
-                    for pkg in pkgs.values():
+                    for pkg in pkgs:
                         with stdlib.log.pushlog():
-                            pkg.wrap()
+                            # pkg.wrap()
+                            print('wrap')
 
                 stdlib.log.slog(f"Done!")
 
@@ -273,9 +274,12 @@ def manifest(
 def package_from_build(build, name_suffix=None):
     return stdlib.package.Package(
                 stdlib.package.PackageID(build.manifest.metadata.name + (name_suffix or '')),
+                build.manifest.metadata.description,
+                build.manifest.metadata.tags,
                 build.manifest.metadata.maintainer,
                 build.manifest.metadata.licenses,
                 build.manifest.metadata.upstream_url,
+                clean_caches=False,
             )
 
 
