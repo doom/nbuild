@@ -51,6 +51,8 @@ class BuildManifestMetadata():
     :param licenses: The licenses of the built software.
     :type licenses: ``List`` [ :py:class:`.License` ]
     :param upstream_url: The URL pointing to the home page of the software.
+    :param kind: The kind of the package. Effective means the package has data to install, while Virtual means the package has no data to install.
+    :type kind: :py:class:`.Kind`
 
     :ivar name: The name of the software being built.
     :vartype name: ``str``
@@ -72,6 +74,9 @@ class BuildManifestMetadata():
 
     :ivar upstream_url: The URL pointing to the home page of the software.
     :vartype upstream_url: ``str``
+
+    :ivar kind: The kind of the package
+    :vartype kind: :py:class:`~stdlib.kind.Kind`
     """
     def __init__(
         self,
@@ -82,6 +87,7 @@ class BuildManifestMetadata():
         maintainer: str,
         licenses,
         upstream_url: str,
+        kind,
     ):
         self.name = name
         self.category = category
@@ -90,6 +96,7 @@ class BuildManifestMetadata():
         self.maintainer = maintainer
         self.licenses = licenses
         self.upstream_url = upstream_url
+        self.kind = kind
 
 
 class BuildManifest():
@@ -145,8 +152,9 @@ class BuildManifest():
     :param versionized_args: A list of dictionaries used as a generic way to give arguments to each versions of the build.
         See the above explanations for its exact structure and limitations.
     :param instructions: A callable (usually a python function) that builds the packages. It takes a :py:class:`~stdlib.build.Build` as parameter
-        and returns an iterable collection of :py:class:`~stdlib.package.Package` (usually a list).
-    :type instructions: fn (:py:class:`~stdlib.build.Build`) -> ``Iterable`` [ :py:class:`~stdlib.package.Package` ]
+        and returns a dictionary, with a package's :py:func:`~stdlib.package.PackageID.short_name` as the key, and the
+        associated :py:class:`.Package` as the value.
+    :type instructions: fn (:py:class:`~stdlib.build.Build`) -> ``Dict`` [ ``str``, :py:class:`~stdlib.package.Package` ]
 
     :ivar path: The path where the build manifest is stored
     :vartype path: ``str``
@@ -158,7 +166,7 @@ class BuildManifest():
     :vartype versionized_args: ``List`` [ ``Dict`` [ ``str``, ``str`` ] ]
 
     :ivar instructions: A callable that builds the package.
-    :vartype instructions: fn (:py:class:`~stdlib.build.Build`) -> ``Iterable`` [ :py:class:`~stdlib.package.Package` ]
+    :vartype instructions: fn (:py:class:`~stdlib.build.Build`) -> ``Dict`` [ ``str``, :py:class:`~stdlib.package.Package` ]
     """
     def __init__(
         self,
@@ -218,32 +226,39 @@ def manifest(
         )
 
         if not is_check():
+
             # Install build dependencies
             for build_dep in build_dependencies:
                 stdlib.log.slog(f"Installing build dependency \"{build_dep}\"")
 
             for build in manifest.builds():
-                stdlib.log.slog(f"Building {build}")
+                stdlib.log.slog(f"Building {build} for \"{core.config.get_config()['global']['target']}\"")
 
                 # Save state before building
-                with stdlib.pushd(), stdlib.pushenv(), stdlib.log.pushlog():
-                    pkgs = build.build()
+                with stdlib.pushd(), stdlib.pushenv():
+                    with stdlib.log.pushlog():
+                        pkgs = build.build()
 
                     # Wrap packages
-                    for pkg in pkgs:
-                        pkg.wrap()
+                    for pkg in pkgs.values():
+                        with stdlib.log.pushlog():
+                            pkg.wrap()
+
+                stdlib.log.slog(f"Done!")
         else:
             for build in manifest.builds():
-                stdlib.log.slog(f"Checking {build}")
+                stdlib.log.slog(f"Checking {build} for \"{core.config.get_config()['global']['target']}\"")
 
                 # Save state before checking
-                with stdlib.pushd(), stdlib.pushenv(), stdlib.log.pushlog():
-                    stdlib.build._set_current_build(build)
-                    check_package(build)
-                    # pkgs = build.build()
+                with stdlib.pushd(), stdlib.pushenv():
+                    with stdlib.log.pushlog():
+                        pkgs = build.build()
 
-                    # # Wrap packages
-                    # for pkg in pkgs:
-                    #     pkg.wrap()
+                    # Wrap packages
+                    for pkg in pkgs.values():
+                        with stdlib.log.pushlog():
+                            pkg.wrap()
+
+                stdlib.log.slog(f"Done!")
 
     return exec_manifest

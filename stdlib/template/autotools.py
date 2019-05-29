@@ -4,11 +4,12 @@
 """
 
 import os
-import nbuild
 import stdlib
 import stdlib.fetch
 import stdlib.extract
 import stdlib.patch
+import stdlib.split.drain_all
+import stdlib.deplinker.elf
 
 from stdlib.template.configure import configure
 from stdlib.template.make import make
@@ -23,8 +24,8 @@ def build(
     compile=make,
     check=lambda: make('check', fail_ok=True),
     install=lambda: make('install', f'DESTDIR={stdlib.build.current_build().install_cache}'),
-    split=None,
-    deplinker=None,
+    split=stdlib.split.drain_all.drain_all,
+    deplinker=stdlib.deplinker.elf.elf_deplinker,
 ):
     """Download, build and wrap a library based on ``autoconf`` and ``make``.
 
@@ -85,25 +86,33 @@ def build(
 
     **Split**
 
-        This step is still a work in progress. The default value is ``None``.
+        This step automatically splits the output of the build into multiple packages. The default value is :py:func:`~stdlib.split.drain_all.drain_all`.
+        Alternative splitters can be found in the :py:mod:`~stdlib.split` module.
 
     **Dependency Linking**
 
-        This step is still a work in progress. The default value is ``None``.
+        This step automatically finds requirements for the generated packages. The default value is :py:func:`~stdlib.deplinker.elf.elf_deplinker`.
+        Alternative dependency linkers can be found in the :py:mod:`~stdlib.deplinker` module.
+
     """
     build = stdlib.build.current_build()
 
     stdlib.log.ilog("Step 1/9: Fetch")
     if fetch is not None:
-        fetch()
+        with stdlib.log.pushlog():
+            fetch()
 
     stdlib.log.ilog("Step 2/9: Extract")
     if extract is not None:
-        extract()
+        with stdlib.log.pushlog():
+            extract()
 
     stdlib.log.ilog("Step 3/9: Patch")
     if patch is not None:
-        patch()
+        with stdlib.log.pushlog():
+            patch()
+
+    packages = dict()
 
     os.makedirs(build_folder, exist_ok=True)
     with stdlib.pushd(build_folder):
@@ -112,26 +121,32 @@ def build(
 
         stdlib.log.ilog("Step 4/9: Configure")
         if configure is not None:
-            configure()
+            with stdlib.log.pushlog():
+                configure()
 
         stdlib.log.ilog("Step 5/9: Compile")
         if compile is not None:
-            compile()
+            with stdlib.log.pushlog():
+                compile()
 
         stdlib.log.ilog("Step 6/9: Check")
         if check is not None:
-            check()
+            with stdlib.log.pushlog():
+                check()
 
         stdlib.log.ilog("Step 7/9: Install")
         if install is not None:
-            install()
+            with stdlib.log.pushlog():
+                install()
 
         stdlib.log.ilog("Step 8/9: Split")
         if split is not None:
-            split()
+            with stdlib.log.pushlog():
+                packages = split()
 
         stdlib.log.ilog("Step 9/9: Dependency Linking")
         if deplinker is not None:
-            deplinker()
+            with stdlib.log.pushlog():
+                deplinker(packages)
 
-    return []
+    return packages
