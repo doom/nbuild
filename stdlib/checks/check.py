@@ -28,21 +28,21 @@ def find_dirs_ending_in(end, path):
     return dirs
 
 
-def check_package(build):
-    # name = build.manifest.metadata.name
+def check_package(pkg):
+    # name = pkg.manifest.metadata.name
 
-    # suffix = build.name.split('-')[-1] if '-' in build.name else None
+    # suffix = pkg.name.split('-')[-1] if '-' in pkg.name else None
 
-    # check_syntax(build)
+    # check_syntax(pkg)
     # if suffix is None or suffix == 'bin':
-    #     check_deps(build)
-    #     check_exec(build)
-    # suffix_checks(build)
+    #     check_deps(pkg)
+    #     check_exec(pkg)
+    # suffix_checks(pkg)
     # ilog("All checks done")
-    # ExeCheck.ExecCheck(build).run()
-    # stx_chk.IdCheck(build).run()
-    # stx_chk.DescriptionCheck(build).run()
-    ExeCheck.ExecCheck(build).run()
-    deps.DepsExistCheck(build).run()
+    # ExeCheck.ExecCheck(pkg).run()
+    stx_chk.IdCheck(pkg).run()
+    stx_chk.DescriptionCheck(pkg).run()
+    ExeCheck.ExecCheck(pkg).run()
+    deps.DepsExistCheck(pkg).run()
 
-    # base.Check.commit(build)
+    # base.Check.commit(pkg)

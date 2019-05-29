@@ -1,4 +1,7 @@
 import enum
+import os
+import toml
+import datetime
 from stdlib.log import ilog, qlog, wlog
 import stdlib.checks.edit as edit
 
@@ -12,19 +15,12 @@ class Type(enum.Enum):
 class Check():
     global_state = Type.EDIT
 
-    @staticmethod
-    def commit(build):
-        ilog("Recreating tarball")
-        build.create_tarball()
-
     def __init__(self, items):
         self.items = items
-        self.fails = []
 
     def run(self):
         for item in self.items:
             if not self.validate(item):
-                self.fails.append(item)
                 self.show(item)
                 if Check.global_state is Type.FIX:
                     self.fix(item)
@@ -32,12 +28,12 @@ class Check():
                     self.diff(item)
                 elif Check.global_state is Type.EDIT:
                     ilog("The automatic changes would be as follows")
-                    self.diff(item)
-                    answer = edit.ask("Accept those changes? ")
-                    if answer is True:
-                        self.fix(item)
-                    elif answer == 'edit':
-                        self.edit(item)
+                    if self.diff(item) is not False:
+                        answer = edit.ask("Accept those changes? ")
+                        if answer is True:
+                            self.fix(item)
+                        elif answer == 'edit':
+                            self.edit(item)
 
     def validate(self, item):
         raise NotImplementedError
@@ -56,10 +52,17 @@ class Check():
 
 
 class CheckOnManifest(Check):
-    def __init__(self, build):
-        super().__init__([build])
+    def __init__(self, pkg, items):
+        super().__init__(items)
+        self.pkg = pkg
+        self.manifest_path = os.path.join(self.pkg.wrap_cache, 'manifest.toml')
+        self.manifest = toml.load(self.manifest_path)
 
-    @staticmethod
-    def commit(build):
-        ilog("Recreating manifest.toml")
-        build.create_manifest()
+    def edit(self, item):
+        edit.open_editor(self.manifest_path)
+        self.pkg.refresh_manifest_wrap_date(self.manifest_path)
+        self.manifest = toml.load(self.manifest_path)
+
+    def update_manifest(self):
+        with open(self.manifest_path, 'w') as filename:
+            toml.dump(self.manifest, filename)

@@ -33,6 +33,8 @@ import core
 import stdlib.log
 from typing import List, Dict
 from stdlib.checks import check_package, is_check
+import stdlib.build
+import stdlib.package
 
 
 class BuildManifestMetadata():
@@ -226,6 +228,7 @@ def manifest(
         )
 
         if not is_check():
+
             # Install build dependencies
             for build_dep in build_dependencies:
                 stdlib.log.slog(f"Installing build dependency \"{build_dep}\"")
@@ -246,20 +249,47 @@ def manifest(
                 stdlib.log.slog(f"Done!")
         else:
             for build in manifest.builds():
-                stdlib.log.slog(f"Building {build} for \"{core.config.get_config()['global']['target']}\"")
+                stdlib.log.slog(f"Checking {build} for \"{core.config.get_config()['global']['target']}\"")
 
-                # Save state before building
+                # Save state before checking
                 with stdlib.pushd(), stdlib.pushenv():
                     with stdlib.log.pushlog():
                         stdlib.build._set_current_build(build)
-                        check_package(build)
-                        # pkgs = build.build()
+                        pkgs = get_splits(build)
+                        for pkg in pkgs:
+                            pkg.unwrap()
+                            check_package(pkg)
 
                     # Wrap packages
-                    # for pkg in pkgs.values():
-                    #     with stdlib.log.pushlog():
-                    #         pkg.wrap()
+                    for pkg in pkgs:
+                        with stdlib.log.pushlog():
+                            os.rename(
+                                        os.path.join(pkg.wrap_cache, 'manifest.toml'),
+                                        os.path.join(pkg.package_cache, 'manifest.toml'),
+                                    )
+                            os.remove(os.path.join(pkg.wrap_cache, 'data.tar.gz'))
+                            pkg.create_data_tar()
+                            stdlib.log.slog("Updating manifest.toml")
+                            pkg.refresh_manifest_wrap_date(os.path.join(pkg.package_cache, 'manifest.toml'))
+                            stdlib.log.slog("Creating package.nest")
+                            pkg.create_package_nest()
 
                 stdlib.log.slog(f"Done!")
 
     return exec_manifest
+
+
+def package_from_build(build, name_suffix=None):
+    return stdlib.package.Package(
+                stdlib.package.PackageID(build.manifest.metadata.name + (name_suffix or '')),
+                build.manifest.metadata.description,
+                build.manifest.metadata.tags,
+                build.manifest.metadata.maintainer,
+                build.manifest.metadata.licenses,
+                build.manifest.metadata.upstream_url,
+                clean_package_cache=False,
+            )
+
+
+def get_splits(build):
+    return [package_from_build(build)]

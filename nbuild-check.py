@@ -27,6 +27,15 @@ def parse_args():
         nargs='?',
     )
     parser.add_argument(
+        '--config',
+        default=os.path.join(  # Default path is script_dir/config.toml
+            os.getcwd(),
+            os.path.dirname(sys.argv[0]),
+            'config.toml',
+        ),
+        help="Static configuration for Nest Build. Default: config.toml",
+    )
+    parser.add_argument(
         '-o',
         '--output-dir',
         default=os.path.join(  # Default path is script_dir/packages
@@ -94,6 +103,20 @@ def main():
         base.Check.global_state = base.Type.FIX
 
     manifest_path = args.manifest
+
+    try:
+        core.config.load_config()
+    except Exception as e:
+        print('bonjour')
+        stdlib.log.flog(str(e))
+        exit(1)
+
+    try:
+        _ = core.config.get_config()['global']['target']
+    except:
+        stdlib.log.flog("The configuration file doesn't indicate the target repository.")
+        exit(1)
+
     spec = importlib.util.spec_from_file_location('build_manifest', manifest_path)
     if not spec:
         stdlib.log.flog(f"Failed to load Build Manifest located at path \"{manifest_path}\"")
