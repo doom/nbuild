@@ -148,6 +148,7 @@ class Package():
         self.wrap_cache = get_wrap_cache(self)
         self.package_cache = get_package_cache(self)
 
+    def clean_caches(self):
         if os.path.exists(self.wrap_cache):
             shutil.rmtree(self.wrap_cache)
         os.makedirs(self.wrap_cache)

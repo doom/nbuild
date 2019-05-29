@@ -33,6 +33,8 @@ import core
 import stdlib.log
 from typing import List, Dict
 from stdlib.checks import check_package, is_check
+import stdlib.build
+import stdlib.package
 
 
 class BuildManifestMetadata():
@@ -242,6 +244,7 @@ def manifest(
                     # Wrap packages
                     for pkg in pkgs.values():
                         with stdlib.log.pushlog():
+                            pkg.clean_caches()
                             pkg.wrap()
 
                 stdlib.log.slog(f"Done!")
@@ -252,7 +255,10 @@ def manifest(
                 # Save state before checking
                 with stdlib.pushd(), stdlib.pushenv():
                     with stdlib.log.pushlog():
-                        pkgs = build.build()
+                        stdlib.build._set_current_build(build)
+                        pkgs = get_splits(build)
+                        for pkg in pkgs:
+                            check_package(pkg)
 
                     # Wrap packages
                     for pkg in pkgs.values():
@@ -262,3 +268,16 @@ def manifest(
                 stdlib.log.slog(f"Done!")
 
     return exec_manifest
+
+
+def package_from_build(build, name_suffix=None):
+    return stdlib.package.Package(
+                stdlib.package.PackageID(build.manifest.metadata.name + (name_suffix or '')),
+                build.manifest.metadata.maintainer,
+                build.manifest.metadata.licenses,
+                build.manifest.metadata.upstream_url,
+            )
+
+
+def get_splits(build):
+    return [package_from_build(build)]
