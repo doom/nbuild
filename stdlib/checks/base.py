@@ -1,6 +1,7 @@
 import enum
 import os
 import toml
+import datetime
 from stdlib.log import ilog, qlog, wlog
 import stdlib.checks.edit as edit
 
@@ -16,12 +17,10 @@ class Check():
 
     def __init__(self, items):
         self.items = items
-        self.fails = []
 
     def run(self):
         for item in self.items:
             if not self.validate(item):
-                self.fails.append(item)
                 self.show(item)
                 if Check.global_state is Type.FIX:
                     self.fix(item)
@@ -53,12 +52,17 @@ class Check():
 
 
 class CheckOnManifest(Check):
-    def __init__(self, pkg, files):
-        super().__init__(files)
+    def __init__(self, pkg, items):
+        super().__init__(items)
         self.pkg = pkg
-        self.manifest_path = os.path.join(self.package_cache, 'manifest.toml')
+        self.manifest_path = os.path.join(self.pkg.wrap_cache, 'manifest.toml')
         self.manifest = toml.load(self.manifest_path)
 
     def edit(self, item):
         edit.open_editor(self.manifest_path)
-        self.pkg.refresh_manifest_wrap_date()
+        self.pkg.refresh_manifest_wrap_date(self.manifest_path)
+        self.manifest = toml.load(self.manifest_path)
+
+    def update_manifest(self):
+        with open(self.manifest_path, 'w') as filename:
+            toml.dump(self.manifest, filename)
