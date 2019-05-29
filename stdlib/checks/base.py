@@ -28,12 +28,12 @@ class Check():
                     self.diff(item)
                 elif Check.global_state is Type.EDIT:
                     ilog("The automatic changes would be as follows")
-                    self.diff(item)
-                    answer = edit.ask("Accept those changes? ")
-                    if answer is True:
-                        self.fix(item)
-                    elif answer == 'edit':
-                        self.edit(item)
+                    if self.diff(item) is not False:
+                        answer = edit.ask("Accept those changes? ")
+                        if answer is True:
+                            self.fix(item)
+                        elif answer == 'edit':
+                            self.edit(item)
 
     def validate(self, item):
         raise NotImplementedError

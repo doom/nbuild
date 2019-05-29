@@ -10,24 +10,25 @@ import os
 
 class IdCheck(base.CheckOnManifest):
     def __init__(self, pkg):
-        super().__init__(pkg)
+        super().__init__(pkg, None)
+        name = self.manifest['name']
+        category = self.manifest['category']
+        version = self.manifest['version']
+        self.items = [f'{category}/{name}#{version}']
 
     def validate(self, item):
-        pattern = re.compile(r'^[a-z\-]+::[a-z\-]+\/[a-z\-]+\d*#(?:\d+\.){2}\d+$')
-        return pattern.match(item.id) is not None
+        pattern = re.compile(r'^[a-z\-]+\/[a-z\-]+\d*#(?:\d+\.){2}\d+$')
+        return pattern.match(item) is not None
 
     def show(self, item):
-        elog(f"The ID {item.id} doesn't respect the required syntax.")
+        elog(f"The ID {item} doesn't respect the required syntax.")
 
     def fix(self, item):
         wlog("Item ID cannot be automatically fixed")
 
     def diff(self, item):
         wlog("No change can be made automatically")
-
-    def edit(self, item):
-        toml_path = os.path.join(self.pkg.package_dir, 'manifest.toml')
-        edit.open_editor(toml_path)
+        return False
 
 
 class DescriptionCheck(base.CheckOnManifest):
