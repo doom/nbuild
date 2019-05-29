@@ -1,4 +1,6 @@
 import enum
+import os
+import toml
 from stdlib.log import ilog, qlog, wlog
 import stdlib.checks.edit as edit
 
@@ -11,11 +13,6 @@ class Type(enum.Enum):
 
 class Check():
     global_state = Type.EDIT
-
-    @staticmethod
-    def commit(build):
-        ilog("Recreating tarball")
-        build.create_tarball()
 
     def __init__(self, items):
         self.items = items
@@ -56,10 +53,12 @@ class Check():
 
 
 class CheckOnManifest(Check):
-    def __init__(self, build):
-        super().__init__([build])
+    def __init__(self, pkg, files):
+        super().__init__(files)
+        self.pkg = pkg
+        self.manifest_path = os.path.join(self.package_cache, 'manifest.toml')
+        self.manifest = toml.load(self.manifest_path)
 
-    @staticmethod
-    def commit(build):
-        ilog("Recreating manifest.toml")
-        build.create_manifest()
+    def edit(self, item):
+        edit.open_editor(self.manifest_path)
+        self.pkg.refresh_manifest_wrap_date()

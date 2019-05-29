@@ -130,7 +130,7 @@ class Package():
         upstream_url: str = None,
         kind: stdlib.kind.Kind = None,
         run_dependencies: Dict[str, str]={},
-        clean_wrap_cache=True,
+        clean_package_cache=True,
     ):
         from core.cache import get_wrap_cache, get_package_cache
 
@@ -149,14 +149,14 @@ class Package():
         self.wrap_cache = get_wrap_cache(self)
         self.package_cache = get_package_cache(self)
 
-        if clean_wrap_cache:
-            if os.path.exists(self.wrap_cache):
-                shutil.rmtree(self.wrap_cache)
-            os.makedirs(self.wrap_cache)
+        if os.path.exists(self.wrap_cache):
+            shutil.rmtree(self.wrap_cache)
+        os.makedirs(self.wrap_cache)
 
-        if os.path.exists(self.package_cache):
-            shutil.rmtree(self.package_cache)
-        os.makedirs(self.package_cache)
+        if clean_package_cache:
+            if os.path.exists(self.package_cache):
+                shutil.rmtree(self.package_cache)
+            os.makedirs(self.package_cache)
 
     def is_empty(self) -> bool:
         """Test whether the ``wrap_cache`` of this :py:class:`.Package` contains at least a single file.
@@ -333,6 +333,15 @@ class Package():
         """
         stdlib.log.slog(f"Wrapping {self.id} ({self.wrap_cache})")
 
+        self.show_manifest()
+
+        self.create_data_tar()
+        stdlib.log.slog("Creating manifest.toml")
+        self.create_toml_manifest()
+        stdlib.log.slog("Creating package.nest")
+        self.create_package_nest()
+
+    def show_manifest(self):
         stdlib.log.slog(f"Manifest:")
         with stdlib.log.pushlog():
             stdlib.log.slog(f"name: {self.id.name}")
@@ -350,6 +359,7 @@ class Package():
                 for (full_name, version_req) in self.run_dependencies.items():
                     stdlib.log.slog(f"{full_name}#{version_req}")
 
+    def create_data_tar(self):
         if self.kind == stdlib.kind.Kind.EFFECTIVE:
             with stdlib.pushd(self.wrap_cache):
                 files_count = 0
@@ -368,9 +378,9 @@ class Package():
         elif self.kind == stdlib.kind.Kind.VIRTUAL:
             stdlib.log.ilog("Package is virtual, no data is wrapped.")
 
-        stdlib.log.slog("Creating manifest.toml")
+    def create_toml_manifest(self):
         toml_path = os.path.join(self.package_cache, 'manifest.toml')
-        with open(toml_path, "w") as filename:
+        with open(toml_path, 'w') as filename:
             manifest = {
                 'name': self.id.name,
                 'category': self.id.category,
@@ -388,7 +398,14 @@ class Package():
             }
             toml.dump(manifest, filename)
 
-        stdlib.log.slog("Creating package.nest")
+    def refresh_manifest_wrap_date(self):
+        toml_path = os.path.join(self.package_cache, 'manifest.toml')
+        manifest = toml.load(toml_path)
+        manifest['wrap_date'] = datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'
+        with open(toml_path, 'w') as filename:
+            toml.dump(manifest, filename)
+
+    def create_package_nest(self):
         with stdlib.pushd(self.package_cache):
             nest_file = os.path.join(self.package_cache, f'{self.id.name}-{self.id.version}.nest')
             with tarfile.open(nest_file, mode='w') as archive:

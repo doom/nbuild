@@ -266,7 +266,6 @@ def manifest(
                             os.remove(os.path.join(pkg.wrap_cache, 'data.tar.gz'))
                             os.remove(os.path.join(pkg.wrap_cache, 'manifest.toml'))
                             pkg.wrap()
-                            print('wrap')
 
                 stdlib.log.slog(f"Done!")
 
@@ -281,7 +280,7 @@ def package_from_build(build, name_suffix=None):
                 build.manifest.metadata.maintainer,
                 build.manifest.metadata.licenses,
                 build.manifest.metadata.upstream_url,
-                clean_caches=False,
+                clean_package_cache=False,
             )
 
 
