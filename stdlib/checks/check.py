@@ -1,6 +1,5 @@
 import os
 import stdlib.checks.executable as ExeCheck
-from stdlib.checks.dependencies import check_deps
 from stdlib.log import ilog
 from stdlib.checks.suffix_check import suffix_checks
 import stdlib.checks.base as base

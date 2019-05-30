@@ -20,10 +20,13 @@ class DepsMissingCheck(base.CheckOnManifest):
                     '{,usr/}lib{,32,64}/*',
                 ],
         )
-        super().__init__(pkg, elfs)
+        super().__init__(pkg, filter(lambda x: not os.path.islink(os.path.join(pkg.wrap_cache, x)), elfs))
         self.missing_deps = []
+        ilog("Looking for missing dependencies...")
 
     def validate(self, item):
+        ilog(f"Checking {item}")
+
         self.missing_deps = []
         deps = stdlib.deplinker.elf._fetch_elf_dependencies(self.pkg, item)
         for d in deps:
@@ -34,7 +37,7 @@ class DepsMissingCheck(base.CheckOnManifest):
 
     def show(self, item):
         for dep, package in self.missing_deps:
-            elog(f"Missing dependency to {dep} (required by '{item}')")
+            elog(f"Missing dependency to {dep}")
 
     def diff(self, item):
         can_fix = False
