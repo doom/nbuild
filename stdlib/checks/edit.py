@@ -3,7 +3,7 @@ from stdlib.log import ilog, wlog, qlog
 from core.args import get_args
 
 
-def ask(question, default=True):
+def ask_yne(question, default=True):
     while True:
         answer = qlog(question + '[Y/n/e] ').lower()
         if answer == '':
@@ -14,6 +14,20 @@ def ask(question, default=True):
             return False
         elif answer in ['e', 'edit']:
             return 'edit'
+        else:
+            wlog("Unrecognized answer")
+            continue
+
+
+def ask_yn(question, default=True):
+    while True:
+        answer = qlog(question + '[Y/n] ').lower()
+        if answer == '':
+            return default
+        elif answer in ['y', 'yes', 'ye']:
+            return True
+        elif answer in ['n', 'no']:
+            return False
         else:
             wlog("Unrecognized answer")
             continue

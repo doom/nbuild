@@ -29,10 +29,13 @@ class Check():
                 elif Check.global_state is Type.EDIT:
                     ilog("The automatic changes would be as follows")
                     if self.diff(item) is not False:
-                        answer = edit.ask("Accept those changes? ")
+                        answer = edit.ask_yne("Accept those changes? ")
                         if answer is True:
                             self.fix(item)
                         elif answer == 'edit':
+                            self.edit(item)
+                    else:
+                        if edit.ask_yn("Edit manually? "):
                             self.edit(item)
 
     def validate(self, item):

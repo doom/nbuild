@@ -1,12 +1,14 @@
 import os
 import requests
+import urllib
 from elftools.elf.elffile import ELFFile
 from elftools.common.exceptions import ELFError
-from stdlib.log import ilog, elog, slog
+from stdlib.log import ilog, elog, slog, wlog
 import stdlib.package
 import stdlib.checks.check as check
 import stdlib.checks.base as base
 import core.config
+import stdlib.deplinker.elf
 
 
 def get_deps(filename):
@@ -96,6 +98,84 @@ def check_deps(pkg):
 ###############################################################################
 
 
+class DepsMissingCheck(base.CheckOnManifest):
+    def __init__(self, pkg):
+        elfs = stdlib.deplinker.elf._find_elfs(
+                pkg,
+                [
+                    '{,usr/}bin/*',
+                    '{,usr/}lib{,32,64}/*',
+                ],
+        )
+        super().__init__(pkg, elfs)
+        self.missing_deps = []
+
+    def validate(self, item):
+        self.missing_deps = []
+        deps = stdlib.deplinker.elf._fetch_elf_dependencies(self.pkg, item)
+        for d in deps:
+            res = self._solve_remotely(d)
+            if res not in self.manifest['dependencies']:
+                self.missing_deps.append((d, res))
+        return len(self.missing_deps) == 0
+
+    def show(self, item):
+        for dep, package in self.missing_deps:
+            elog(f"Missing dependency to {dep} (required by '{item}')")
+
+    def diff(self, item):
+        can_fix = False
+        for dep, package in self.missing_deps:
+            if package is not None:
+                ilog(f"{package}#* would be added as a dependency, as it contains {dep}")
+                can_fix = True
+            else:
+                wlog(f"No package has been found for {dep}, please try manual search")
+        return can_fix
+
+    def fix(self, item):
+        msgs = []
+        for dep, package in self.missing_deps:
+            if package is not None:
+                self.manifest['dependencies'][package] = '*'
+                msgs.append(f"{package}#* has been added as a dependency")
+            else:
+                wlog(f"Nothing could be done automatically for {package}")
+        self.update_manifest()
+        for m in msgs:
+            ilog(m)
+
+    @staticmethod
+    def _solve_remotely(dep):
+        config = core.config.get_config()
+
+        if config.get('repositories') is None:
+            return None
+
+        # Try all repositories from top to bottom
+        for repository in config['repositories']:
+            try:
+                url = core.config.get_config()['repositories'][repository]['url']
+                r = requests.get(
+                    url=f'{url}/api/search?q={urllib.parse.quote(dep)}&search_by=content&exact_match=true',
+                )
+
+                if r.status_code == 200:
+                    results = r.json()
+
+                    if len(results) == 1:
+                        result = results[0]
+                        if result['all_versions']:
+                            return result['name']
+                elif r.status_code == 404:
+                    stdlib.log.elog(f"\"{repository}\" doesn't contain a package with file \"{dep}\"")
+                else:
+                    raise RuntimeError("Repository returned an unknown status code")
+            except RuntimeError:
+                stdlib.log.elog(f"An unknown error occurred when fetching \"{repository}\" (is the link dead?), skipping...")
+
+        return None
+
 class DepsExistCheck(base.CheckOnManifest):
     def __init__(self, pkg):
         super().__init__(pkg, None)
@@ -112,7 +192,6 @@ class DepsExistCheck(base.CheckOnManifest):
             self.error['repository'] = repository
             return False
         url = f'{repo["url"]}/api/p/{category}/{name}'
-        print(url)
         if semver != '*':
             url += f'/{semver}'
         response = requests.get(url)

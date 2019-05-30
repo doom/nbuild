@@ -91,5 +91,5 @@ def qlog(*logs: str):
     global log_tab_level
 
     indent = '\t' * log_tab_level
-    print(f"{termcolor.colored('[?]', 'red', attrs=['bold'])} {indent}", *logs, end='')
+    print(f"{termcolor.colored('[?]', 'yellow')} {indent}", *logs, end='')
     return input()
