@@ -14,6 +14,7 @@ def get_shlib_files(pkg):
     for dirent in dirs:
         files += [os.path.join(dirent, x) for x in os.listdir(dirent)
                   if '.so' in x]
+    files = filter(lambda x: not os.path.islink(x), files)
     return files
 
 
@@ -22,6 +23,7 @@ def get_bin_files(pkg):
     files = []
     for dirent in dirs:
         files += [os.path.join(dirent, x) for x in os.listdir(dirent)]
+    files = filter(lambda x: not os.path.islink(x), files)
     return files
 
 
