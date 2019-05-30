@@ -56,7 +56,7 @@ class DepsMissingCheck(base.CheckOnManifest):
                 self.manifest['dependencies'][package] = '*'
                 msgs.append(f"{package}#* has been added as a dependency")
             else:
-                wlog(f"Nothing could be done automatically for {package}")
+                wlog(f"Nothing could be done automatically for {dep}")
         self.update_manifest()
         for m in msgs:
             ilog(m)
