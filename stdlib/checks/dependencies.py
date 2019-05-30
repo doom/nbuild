@@ -95,24 +95,19 @@ def check_deps(pkg):
 ###############################################################################
 
 
-class DepsExistCheck(base.Check):
-    def __init__(self, build):
-        super().__init__([
-            'beta::sys-lib/libncurses6#6.1.0',
-            'beta::sys-lib/zlib1#1.2.11',
-            'prout::sys-lib/zlib1#1.2.11',
-            'beta::prout/zlib1#1.2.11',
-            'beta::sys-lib/zlib1#1.2.11',
-            'beta::sys-lib/bonjour#1.0.0',
-            'beta::sys-lib/libncurses6#6.1.0',
-        ])
-        self.build = build
+class DepsExistCheck(base.CheckOnManifest):
+    def __init__(self, pkg):
+        super().__init__(pkg, None)
+        self.items = self.manifest['dependencies'].copy().items()
         self.error = {}
 
     def validate(self, item):
+        full_name, semver = item
         self.error['repository'] = None
-        repository, category, name, version = self.split(item)
-        url = f'https://{repository}.raven-os.org/api/p/{category}/{name}/{version}'
+        repository, category, name = self.split(full_name)
+        url = f'https://{repository}.raven-os.org/api/p/{category}/{name}'
+        if semver != '*':
+            url += f'/{semver}'
         if repository not in ['stable', 'beta', 'unstable']:
             self.error['repository'] = repository
             return False
@@ -120,18 +115,20 @@ class DepsExistCheck(base.Check):
         return response.ok
 
     def show(self, item):
+        name, semver = item
         if self.error['repository'] is not None:
             elog(f"The repository '{self.error['repository']}' doesn't exist")
-        elog(f"The package '{item}' was not found")
+        elog(f"The package '{name}#{semver}' was not found")
 
     def fix(self, item):
-        print('fix')
-
-    def edit(self, item):
-        print('edit')
+        name, semver = item
+        del self.manifest['dependencies'][name]
+        self.update_manifest()
+        ilog(f"{name} has been removed from dependencies")
 
     def diff(self, item):
-        print('diff')
+        name, semver = item
+        ilog(f"The dependency to {name} would be removed from the manifest.toml")
 
     @staticmethod
     def split(name):
@@ -143,12 +140,7 @@ class DepsExistCheck(base.Check):
         category = name[:category_end]
         name = name[category_end + 1:]
 
-        pkg_name_end = name.find('#')
-        pkg_name = name[:pkg_name_end]
-        name = name[pkg_name_end + 1:]
-
-        version = name
-        return repository, category, pkg_name, version
+        return repository, category, name
 
 #     def get_elf_deps(elf_path):
 #         with open(elf_path, 'rb') as file:

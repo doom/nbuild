@@ -30,6 +30,8 @@ Therefore, this field will hold the correct URL for all versions and is easily a
 
 import os
 import core
+import datetime
+import toml
 import stdlib.log
 from typing import List, Dict
 from stdlib.checks import check_package, is_check
@@ -268,6 +270,7 @@ def manifest(
                                         os.path.join(pkg.package_cache, 'manifest.toml'),
                                     )
                             os.remove(os.path.join(pkg.wrap_cache, 'data.tar.gz'))
+                            show_manifest_toml(toml.load(os.path.join(pkg.package_cache, 'manifest.toml')))
                             pkg.create_data_tar()
                             stdlib.log.slog("Updating manifest.toml")
                             pkg.refresh_manifest_wrap_date(os.path.join(pkg.package_cache, 'manifest.toml'))
@@ -293,3 +296,22 @@ def package_from_build(build, name_suffix=None):
 
 def get_splits(build):
     return [package_from_build(build)]
+
+
+def show_manifest_toml(toml):
+    stdlib.log.slog(f"Manifest:")
+    with stdlib.log.pushlog():
+        stdlib.log.slog(f"name: {toml['name']}")
+        stdlib.log.slog(f"category: {toml['category']}")
+        stdlib.log.slog(f"version: {toml['version']}")
+        stdlib.log.slog(f"description: {toml['metadata']['description']}")
+        stdlib.log.slog(f"tags: {', '.join(toml['metadata']['tags'])}")
+        stdlib.log.slog(f"maintainer: {toml['metadata']['maintainer']}")
+        stdlib.log.slog(f"licenses: {', '.join(toml['metadata']['licenses'])}")
+        stdlib.log.slog(f"upstream_url: {toml['metadata']['upstream_url']}")
+        stdlib.log.slog(f"kind: {toml['kind']}")
+        stdlib.log.slog(f"wrap_date: {datetime.datetime.utcnow().replace(microsecond=0).isoformat() + 'Z'}")
+        stdlib.log.slog(f"dependencies:")
+        with stdlib.log.pushlog():
+            for (full_name, version_req) in toml['dependencies'].items():
+                stdlib.log.slog(f"{full_name}#{version_req}")
