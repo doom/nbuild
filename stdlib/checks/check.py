@@ -40,9 +40,9 @@ def check_package(pkg):
     # suffix_checks(pkg)
     # ilog("All checks done")
     # ExeCheck.ExecCheck(pkg).run()
-    # stx_chk.IdCheck(pkg).run()
-    # stx_chk.DescriptionCheck(pkg).run()
-    # ExeCheck.ExecCheck(pkg).run()
+    stx_chk.IdCheck(pkg).run()
+    stx_chk.DescriptionCheck(pkg).run()
+    ExeCheck.ExecCheck(pkg).run()
     deps.DepsExistCheck(pkg).run()
 
     # base.Check.commit(pkg)

@@ -1,11 +1,12 @@
 import os
+import requests
 from elftools.elf.elffile import ELFFile
 from elftools.common.exceptions import ELFError
 from stdlib.log import ilog, elog, slog
 import stdlib.package
 import stdlib.checks.check as check
 import stdlib.checks.base as base
-import requests
+import core.config
 
 
 def get_deps(filename):
@@ -102,22 +103,25 @@ class DepsExistCheck(base.CheckOnManifest):
         self.error = {}
 
     def validate(self, item):
+        config = core.config.get_config()
         full_name, semver = item
         self.error['repository'] = None
         repository, category, name = self.split(full_name)
-        url = f'https://{repository}.raven-os.org/api/p/{category}/{name}'
-        if semver != '*':
-            url += f'/{semver}'
-        if repository not in ['stable', 'beta', 'unstable']:
+        repo = config['repositories'].get(repository)
+        if repo is None:
             self.error['repository'] = repository
             return False
+        url = f'{repo["url"]}/api/p/{category}/{name}'
+        print(url)
+        if semver != '*':
+            url += f'/{semver}'
         response = requests.get(url)
         return response.ok
 
     def show(self, item):
         name, semver = item
         if self.error['repository'] is not None:
-            elog(f"The repository '{self.error['repository']}' doesn't exist")
+            elog(f"The repository '{self.error['repository']}' wasn't found")
         elog(f"The package '{name}#{semver}' was not found")
 
     def fix(self, item):
