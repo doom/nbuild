@@ -22,7 +22,7 @@ class DepsMissingCheck(base.CheckOnManifest):
         )
         super().__init__(pkg, filter(lambda x: not os.path.islink(os.path.join(pkg.wrap_cache, x)), elfs))
         self.missing_deps = []
-        ilog("Looking for missing dependencies...")
+        slog("Looking for missing dependencies")
 
     def validate(self, item):
         ilog(f"Checking {item}")
@@ -92,15 +92,18 @@ class DepsMissingCheck(base.CheckOnManifest):
 
         return None
 
+
 class DepsExistCheck(base.CheckOnManifest):
     def __init__(self, pkg):
         super().__init__(pkg, None)
         self.items = self.manifest['dependencies'].copy().items()
         self.error = {}
+        slog("Verifying that current dependencies really exist")
 
     def validate(self, item):
         config = core.config.get_config()
         full_name, semver = item
+        ilog(f"Checking {full_name}#{semver}")
         self.error['repository'] = None
         repository, category, name = self.split(full_name)
         repo = config['repositories'].get(repository)

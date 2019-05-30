@@ -1,6 +1,6 @@
 import os
 import stat
-from stdlib.log import elog, ilog
+from stdlib.log import elog, ilog, slog
 import stdlib.checks.base as base
 import stdlib.checks.check as check
 import stdlib.checks.edit as edit
@@ -31,6 +31,7 @@ class FilesExecCheck(base.Check):
         self.pkg = pkg
 
     def validate(self, item):
+        ilog(f"Checking {self._remove_prefix(item)}")
         return os.access(item, os.X_OK)
 
     def show(self, item):
@@ -50,7 +51,7 @@ class FilesExecCheck(base.Check):
         edit.open_shell(os.path.dirname(item))
 
     def _remove_prefix(self, item):
-        return item[len(cache.get_wrap_cache(self.pkg)):]
+        return item[len(cache.get_wrap_cache(self.pkg)) + 1:]
 
 
 class ExecCheck():
@@ -58,6 +59,6 @@ class ExecCheck():
         self.pkg = pkg
 
     def run(self):
-        ilog(f"Checking files execute permission")
+        slog(f"Checking files execute permission")
         FilesExecCheck(self.pkg, get_bin_files(self.pkg)).run()
         FilesExecCheck(self.pkg, get_shlib_files(self.pkg)).run()
