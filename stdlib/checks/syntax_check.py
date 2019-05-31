@@ -17,7 +17,7 @@ class IdCheck(base.CheckOnManifest):
         self.items = [f'{category}/{name}#{version}']
 
     def validate(self, item):
-        pattern = re.compile(r'^[a-z\-]+\/[a-z\-]+\d*#(?:\d+\.){2}\d+$')
+        pattern = re.compile(r'^[a-z0-9\-]+\/[a-z0-9\-]+#(?:\d+\.){2}\d+$')
         return pattern.match(item) is not None
 
     def show(self, item):
