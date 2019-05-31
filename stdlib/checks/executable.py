@@ -12,8 +12,9 @@ def get_shlib_files(pkg):
     dirs = map(lambda x: os.path.join(cache.get_wrap_cache(pkg), x), ['usr/lib64'])
     files = []
     for dirent in dirs:
-        files += [os.path.join(dirent, x) for x in os.listdir(dirent)
-                  if '.so' in x]
+        if os.path.isdir(dirent):
+            files += [os.path.join(dirent, x) for x in os.listdir(dirent)
+                      if '.so' in x]
     files = filter(lambda x: not os.path.islink(x), files)
     return files
 
@@ -22,7 +23,8 @@ def get_bin_files(pkg):
     dirs = check.find_dirs_ending_in('bin', cache.get_wrap_cache(pkg))
     files = []
     for dirent in dirs:
-        files += [os.path.join(dirent, x) for x in os.listdir(dirent)]
+        if os.path.isdir(dirent):
+            files += [os.path.join(dirent, x) for x in os.listdir(dirent)]
     files = filter(lambda x: not os.path.islink(x), files)
     return files
 
